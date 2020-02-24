@@ -1,6 +1,6 @@
 
-function status_string(status::Status, status_string::Ref{Cstring})
-    ccall((:hsa_status_string, "libhsa-runtime64"), Status, (Status, Ref{Cstring}), status, status_string)
+function status_string(status::Status, status_string::String)
+    ccall((:hsa_status_string, "libhsa-runtime64"), Status, (Status, Cstring), status, status_string)
 end
 
 function init()
@@ -15,8 +15,8 @@ function system_get_info(attribute::SystemInfo, value::Ref{Cvoid})
     ccall((:hsa_system_get_info, "libhsa-runtime64"), Status, (SystemInfo, Ref{Cvoid}), attribute, value)
 end
 
-function extension_get_name(extension::UInt16, name::Ref{Cstring})
-    ccall((:hsa_extension_get_name, "libhsa-runtime64"), Status, (UInt16, Ref{Cstring}), extension, name)
+function extension_get_name(extension::UInt16, name::String)
+    ccall((:hsa_extension_get_name, "libhsa-runtime64"), Status, (UInt16, Cstring), extension, name)
 end
 
 function system_extension_supported(extension::UInt16, version_major::UInt16, version_minor::UInt16, result::Ref{Bool})
@@ -31,7 +31,7 @@ function system_get_extension_table(extension::UInt16, version_major::UInt16, ve
     ccall((:hsa_system_get_extension_table, "libhsa-runtime64"), Status, (UInt16, UInt16, UInt16, Ref{Cvoid}), extension, version_major, version_minor, table)
 end
 
-function system_get_major_extension_table(extension::UInt16, version_major::UInt16, table_length::Csize_t, table::Ref{Cvoid})
+function system_get_major_extension_table(extension::UInt16, version_major::UInt16, table_length::Integer, table::Ref{Cvoid})
     ccall((:hsa_system_get_major_extension_table, "libhsa-runtime64"), Status, (UInt16, UInt16, Csize_t, Ref{Cvoid}), extension, version_major, table_length, table)
 end
 
@@ -63,7 +63,7 @@ function agent_major_extension_supported(extension::UInt16, agent::Agent, versio
     ccall((:hsa_agent_major_extension_supported, "libhsa-runtime64"), Status, (UInt16, Agent, UInt16, Ref{UInt16}, Ref{Bool}), extension, agent, version_major, version_minor, result)
 end
 
-function signal_create(initial_value::SignalValue, num_consumers::UInt32, consumers::Ref{Agent}, signal::Ref{Signal})
+function signal_create(initial_value::SignalValue, num_consumers::Integer, consumers::Ref{Agent}, signal::Ref{Signal})
     ccall((:hsa_signal_create, "libhsa-runtime64"), Status, (SignalValue, UInt32, Ref{Agent}, Ref{Signal}), initial_value, num_consumers, consumers, signal)
 end
 
@@ -311,28 +311,28 @@ function signal_wait_acquire(signal::Signal, condition::SignalCondition, compare
     ccall((:hsa_signal_wait_acquire, "libhsa-runtime64"), SignalValue, (Signal, SignalCondition, SignalValue, UInt64, WaitState), signal, condition, compare_value, timeout_hint, wait_state_hint)
 end
 
-function signal_group_create(num_signals::UInt32, signals::Ref{Signal}, num_consumers::UInt32, consumers::Ref{Agent}, signal_group::Ref{hsa_signal_group_t})
-    ccall((:hsa_signal_group_create, "libhsa-runtime64"), Status, (UInt32, Ref{Signal}, UInt32, Ref{Agent}, Ref{hsa_signal_group_t}), num_signals, signals, num_consumers, consumers, signal_group)
+function signal_group_create(num_signals::Integer, signals::Ref{Signal}, num_consumers::Integer, consumers::Ref{Agent}, signal_group::Ref{SignalGroup})
+    ccall((:hsa_signal_group_create, "libhsa-runtime64"), Status, (UInt32, Ref{Signal}, UInt32, Ref{Agent}, Ref{SignalGroup}), num_signals, signals, num_consumers, consumers, signal_group)
 end
 
-function signal_group_destroy(signal_group::hsa_signal_group_t)
-    ccall((:hsa_signal_group_destroy, "libhsa-runtime64"), Status, (hsa_signal_group_t,), signal_group)
+function signal_group_destroy(signal_group::SignalGroup)
+    ccall((:hsa_signal_group_destroy, "libhsa-runtime64"), Status, (SignalGroup,), signal_group)
 end
 
-function signal_group_wait_any_scacquire(signal_group::hsa_signal_group_t, conditions::Ref{SignalCondition}, compare_values::Ref{SignalValue}, wait_state_hint::WaitState, signal::Ref{Signal}, value::Ref{SignalValue})
-    ccall((:hsa_signal_group_wait_any_scacquire, "libhsa-runtime64"), Status, (hsa_signal_group_t, Ref{SignalCondition}, Ref{SignalValue}, WaitState, Ref{Signal}, Ref{SignalValue}), signal_group, conditions, compare_values, wait_state_hint, signal, value)
+function signal_group_wait_any_scacquire(signal_group::SignalGroup, conditions::Ref{SignalCondition}, compare_values::Ref{SignalValue}, wait_state_hint::WaitState, signal::Ref{Signal}, value::Ref{SignalValue})
+    ccall((:hsa_signal_group_wait_any_scacquire, "libhsa-runtime64"), Status, (SignalGroup, Ref{SignalCondition}, Ref{SignalValue}, WaitState, Ref{Signal}, Ref{SignalValue}), signal_group, conditions, compare_values, wait_state_hint, signal, value)
 end
 
-function signal_group_wait_any_relaxed(signal_group::hsa_signal_group_t, conditions::Ref{SignalCondition}, compare_values::Ref{SignalValue}, wait_state_hint::WaitState, signal::Ref{Signal}, value::Ref{SignalValue})
-    ccall((:hsa_signal_group_wait_any_relaxed, "libhsa-runtime64"), Status, (hsa_signal_group_t, Ref{SignalCondition}, Ref{SignalValue}, WaitState, Ref{Signal}, Ref{SignalValue}), signal_group, conditions, compare_values, wait_state_hint, signal, value)
+function signal_group_wait_any_relaxed(signal_group::SignalGroup, conditions::Ref{SignalCondition}, compare_values::Ref{SignalValue}, wait_state_hint::WaitState, signal::Ref{Signal}, value::Ref{SignalValue})
+    ccall((:hsa_signal_group_wait_any_relaxed, "libhsa-runtime64"), Status, (SignalGroup, Ref{SignalCondition}, Ref{SignalValue}, WaitState, Ref{Signal}, Ref{SignalValue}), signal_group, conditions, compare_values, wait_state_hint, signal, value)
 end
 
-function queue_create(agent::Agent, size::UInt32, type::Queueype32_t, callback::Ref{Cvoid}, data::Ref{Cvoid}, private_segment_size::UInt32, group_segment_size::UInt32, queue::Ref{Ref{Queue}})
-    ccall((:hsa_queue_create, "libhsa-runtime64"), Status, (Agent, UInt32, Queueype32_t, Ref{Cvoid}, Ref{Cvoid}, UInt32, UInt32, Ref{Ref{Queue}}), agent, size, type, callback, data, private_segment_size, group_segment_size, queue)
+function queue_create(agent::Agent, size::Integer, type::QueueType, callback::Ref{Cvoid}, data::Ref{Cvoid}, private_segment_size::Integer, group_segment_size::Integer, queue::Ref{Ref{Queue}})
+    ccall((:hsa_queue_create, "libhsa-runtime64"), Status, (Agent, UInt32, QueueType, Ref{Cvoid}, Ref{Cvoid}, UInt32, UInt32, Ref{Ref{Queue}}), agent, size, type, callback, data, private_segment_size, group_segment_size, queue)
 end
 
-function soft_queue_create(region::hsa_region_t, size::UInt32, type::Queueype32_t, features::UInt32, doorbell_signal::Signal, queue::Ref{Ref{Queue}})
-    ccall((:hsa_soft_queue_create, "libhsa-runtime64"), Status, (hsa_region_t, UInt32, Queueype32_t, UInt32, Signal, Ref{Ref{Queue}}), region, size, type, features, doorbell_signal, queue)
+function soft_queue_create(region::Region, size::Integer, type::QueueType, features::Integer, doorbell_signal::Signal, queue::Ref{Ref{Queue}})
+    ccall((:hsa_soft_queue_create, "libhsa-runtime64"), Status, (Region, UInt32, QueueType, UInt32, Signal, Ref{Ref{Queue}}), region, size, type, features, doorbell_signal, queue)
 end
 
 function queue_destroy(queue::Ref{Queue})
@@ -443,27 +443,27 @@ function queue_store_read_index_release(queue::Ref{Queue}, value::UInt64)
     ccall((:hsa_queue_store_read_index_release, "libhsa-runtime64"), Cvoid, (Ref{Queue}, UInt64), queue, value)
 end
 
-function queue_store_read_index_screlease(queue::Ref{Queue}, value::UInt64)
+function queue_store_read_index_screlease(queue::Ref{Queue}, value::Integer)
     ccall((:hsa_queue_store_read_index_screlease, "libhsa-runtime64"), Cvoid, (Ref{Queue}, UInt64), queue, value)
 end
 
-function region_get_info(region::hsa_region_t, attribute::hsa_region_info_t, value::Ref{Cvoid})
-    ccall((:hsa_region_get_info, "libhsa-runtime64"), Status, (hsa_region_t, hsa_region_info_t, Ref{Cvoid}), region, attribute, value)
+function region_get_info(region::Region, attribute::RegionInfo, value::Ref{Cvoid})
+    ccall((:hsa_region_get_info, "libhsa-runtime64"), Status, (Region, RegionInfo, Ref{Cvoid}), region, attribute, value)
 end
 
 function agent_iterate_regions(agent::Agent, callback::Ref{Cvoid}, data::Ref{Cvoid})
     ccall((:hsa_agent_iterate_regions, "libhsa-runtime64"), Status, (Agent, Ref{Cvoid}, Ref{Cvoid}), agent, callback, data)
 end
 
-function memory_allocate(region::hsa_region_t, size::Csize_t, ptr::Ref{Ref{Cvoid}})
-    ccall((:hsa_memory_allocate, "libhsa-runtime64"), Status, (hsa_region_t, Csize_t, Ref{Ref{Cvoid}}), region, size, ptr)
+function memory_allocate(region::Region, size::Integer, ptr::Ref{Ref{Cvoid}})
+    ccall((:hsa_memory_allocate, "libhsa-runtime64"), Status, (Region, Csize_t, Ref{Ref{Cvoid}}), region, size, ptr)
 end
 
 function memory_free(ptr::Ref{Cvoid})
     ccall((:hsa_memory_free, "libhsa-runtime64"), Status, (Ref{Cvoid},), ptr)
 end
 
-function memory_copy(dst::Ref{Cvoid}, src::Ref{Cvoid}, size::Csize_t)
+function memory_copy(dst::Ref{Cvoid}, src::Ref{Cvoid}, size::Integer)
     ccall((:hsa_memory_copy, "libhsa-runtime64"), Status, (Ref{Cvoid}, Ref{Cvoid}, Csize_t), dst, src, size)
 end
 
@@ -471,11 +471,11 @@ function memory_assign_agent(ptr::Ref{Cvoid}, agent::Agent, access::AccessPermis
     ccall((:hsa_memory_assign_agent, "libhsa-runtime64"), Status, (Ref{Cvoid}, Agent, AccessPermission), ptr, agent, access)
 end
 
-function memory_register(ptr::Ref{Cvoid}, size::Csize_t)
+function memory_register(ptr::Ref{Cvoid}, size::Integer)
     ccall((:hsa_memory_register, "libhsa-runtime64"), Status, (Ref{Cvoid}, Csize_t), ptr, size)
 end
 
-function memory_deregister(ptr::Ref{Cvoid}, size::Csize_t)
+function memory_deregister(ptr::Ref{Cvoid}, size::Integer)
     ccall((:hsa_memory_deregister, "libhsa-runtime64"), Status, (Ref{Cvoid}, Csize_t), ptr, size)
 end
 
@@ -487,24 +487,24 @@ function agent_iterate_isas(agent::Agent, callback::Ref{Cvoid}, data::Ref{Cvoid}
     ccall((:hsa_agent_iterate_isas, "libhsa-runtime64"), Status, (Agent, Ref{Cvoid}, Ref{Cvoid}), agent, callback, data)
 end
 
-function isa_get_info(isa::ISA, attribute::hsa_isa_info_t, index::UInt32, value::Ref{Cvoid})
-    ccall((:hsa_isa_get_info, "libhsa-runtime64"), Status, (ISA, hsa_isa_info_t, UInt32, Ref{Cvoid}), isa, attribute, index, value)
+function isa_get_info(isa::ISA, attribute::ISAInfo, index::Integer, value::Ref{Cvoid})
+    ccall((:hsa_isa_get_info, "libhsa-runtime64"), Status, (ISA, ISAInfo, UInt32, Ref{Cvoid}), isa, attribute, index, value)
 end
 
-function isa_get_info_alt(isa::ISA, attribute::hsa_isa_info_t, value::Ref{Cvoid})
-    ccall((:hsa_isa_get_info_alt, "libhsa-runtime64"), Status, (ISA, hsa_isa_info_t, Ref{Cvoid}), isa, attribute, value)
+function isa_get_info_alt(isa::ISA, attribute::ISAInfo, value::Ref{Cvoid})
+    ccall((:hsa_isa_get_info_alt, "libhsa-runtime64"), Status, (ISA, ISAInfo, Ref{Cvoid}), isa, attribute, value)
 end
 
 function isa_get_exception_policies(isa::ISA, profile::Profile, mask::Ref{UInt16})
     ccall((:hsa_isa_get_exception_policies, "libhsa-runtime64"), Status, (ISA, Profile, Ref{UInt16}), isa, profile, mask)
 end
 
-function isa_get_round_method(isa::ISA, fp_type::hsa_fp_type_t, flush_mode::hsa_flush_mode_t, round_method::Ref{hsa_round_method_t})
-    ccall((:hsa_isa_get_round_method, "libhsa-runtime64"), Status, (ISA, hsa_fp_type_t, hsa_flush_mode_t, Ref{hsa_round_method_t}), isa, fp_type, flush_mode, round_method)
+function isa_get_round_method(isa::ISA, fp_type::FPType, flush_mode::FlushMode, round_method::Ref{RoundMethod})
+    ccall((:hsa_isa_get_round_method, "libhsa-runtime64"), Status, (ISA, FPType, FlushMode, Ref{RoundMethod}), isa, fp_type, flush_mode, round_method)
 end
 
-function wavefront_get_info(wavefront::hsa_wavefront_t, attribute::hsa_wavefront_info_t, value::Ref{Cvoid})
-    ccall((:hsa_wavefront_get_info, "libhsa-runtime64"), Status, (hsa_wavefront_t, hsa_wavefront_info_t, Ref{Cvoid}), wavefront, attribute, value)
+function wavefront_get_info(wavefront::Wavefront, attribute::WavefrontInfo, value::Ref{Cvoid})
+    ccall((:hsa_wavefront_get_info, "libhsa-runtime64"), Status, (Wavefront, WavefrontInfo, Ref{Cvoid}), wavefront, attribute, value)
 end
 
 function isa_iterate_wavefronts(isa::ISA, callback::Ref{Cvoid}, data::Ref{Cvoid})
@@ -515,44 +515,44 @@ function isa_compatible(code_object_isa::ISA, agent_isa::ISA, result::Ref{Bool})
     ccall((:hsa_isa_compatible, "libhsa-runtime64"), Status, (ISA, ISA, Ref{Bool}), code_object_isa, agent_isa, result)
 end
 
-function code_object_reader_create_from_file(file::hsa_file_t, code_object_reader::Ref{hsa_code_object_reader_t})
-    ccall((:hsa_code_object_reader_create_from_file, "libhsa-runtime64"), Status, (hsa_file_t, Ref{hsa_code_object_reader_t}), file, code_object_reader)
+function code_object_reader_create_from_file(file::File, code_object_reader::Ref{CodeObjectReader})
+    ccall((:hsa_code_object_reader_create_from_file, "libhsa-runtime64"), Status, (File, Ref{CodeObjectReader}), file, code_object_reader)
 end
 
-function code_object_reader_create_from_memory(code_object::Ref{Cvoid}, size::Csize_t, code_object_reader::Ref{hsa_code_object_reader_t})
-    ccall((:hsa_code_object_reader_create_from_memory, "libhsa-runtime64"), Status, (Ref{Cvoid}, Csize_t, Ref{hsa_code_object_reader_t}), code_object, size, code_object_reader)
+function code_object_reader_create_from_memory(code_object::Ref{Cvoid}, size::Integer, code_object_reader::Ref{CodeObjectReader})
+    ccall((:hsa_code_object_reader_create_from_memory, "libhsa-runtime64"), Status, (Ref{Cvoid}, Csize_t, Ref{CodeObjectReader}), code_object, size, code_object_reader)
 end
 
-function code_object_reader_destroy(code_object_reader::hsa_code_object_reader_t)
-    ccall((:hsa_code_object_reader_destroy, "libhsa-runtime64"), Status, (hsa_code_object_reader_t,), code_object_reader)
+function code_object_reader_destroy(code_object_reader::CodeObjectReader)
+    ccall((:hsa_code_object_reader_destroy, "libhsa-runtime64"), Status, (CodeObjectReader,), code_object_reader)
 end
 
-function executable_create(profile::Profile, executable_state::hsa_executable_state_t, options, executable::Ref{Executable})
-    ccall((:hsa_executable_create, "libhsa-runtime64"), Status, (Profile, hsa_executable_state_t, Cstring, Ref{Executable}), profile, executable_state, options, executable)
+function executable_create(profile::Profile, executable_state::ExecutableState, options, executable::Ref{Executable})
+    ccall((:hsa_executable_create, "libhsa-runtime64"), Status, (Profile, ExecutableState, Cstring, Ref{Executable}), profile, executable_state, options, executable)
 end
 
-function executable_create_alt(profile::Profile, default_float_rounding_mode::FloatRoundingMode, options, executable::Ref{Executable})
-    ccall((:hsa_executable_create_alt, "libhsa-runtime64"), Status, (Profile, FloatRoundingMode, Cstring, Ref{Executable}), profile, default_float_rounding_mode, options, executable)
+function executable_create_alt(profile::Profile, default_float_rounding_mode::DefaultFloatRoundingMode, options, executable::Ref{Executable})
+    ccall((:hsa_executable_create_alt, "libhsa-runtime64"), Status, (Profile, DefaultFloatRoundingMode, Cstring, Ref{Executable}), profile, default_float_rounding_mode, options, executable)
 end
 
 function executable_destroy(executable::Executable)
     ccall((:hsa_executable_destroy, "libhsa-runtime64"), Status, (Executable,), executable)
 end
 
-function executable_load_program_code_object(executable::Executable, code_object_reader::hsa_code_object_reader_t, options, loaded_code_object::Ref{LoadedCodeObject})
-    ccall((:hsa_executable_load_program_code_object, "libhsa-runtime64"), Status, (Executable, hsa_code_object_reader_t, Cstring, Ref{LoadedCodeObject}), executable, code_object_reader, options, loaded_code_object)
+function executable_load_program_code_object(executable::Executable, code_object_reader::CodeObjectReader, options, loaded_code_object::Ref{LoadedCodeObject})
+    ccall((:hsa_executable_load_program_code_object, "libhsa-runtime64"), Status, (Executable, CodeObjectReader, Cstring, Ref{LoadedCodeObject}), executable, code_object_reader, options, loaded_code_object)
 end
 
-function executable_load_agent_code_object(executable::Executable, agent::Agent, code_object_reader::hsa_code_object_reader_t, options, loaded_code_object::Ref{LoadedCodeObject})
-    ccall((:hsa_executable_load_agent_code_object, "libhsa-runtime64"), Status, (Executable, Agent, hsa_code_object_reader_t, Cstring, Ref{LoadedCodeObject}), executable, agent, code_object_reader, options, loaded_code_object)
+function executable_load_agent_code_object(executable::Executable, agent::Agent, code_object_reader::CodeObjectReader, options, loaded_code_object::Ref{LoadedCodeObject})
+    ccall((:hsa_executable_load_agent_code_object, "libhsa-runtime64"), Status, (Executable, Agent, CodeObjectReader, Cstring, Ref{LoadedCodeObject}), executable, agent, code_object_reader, options, loaded_code_object)
 end
 
 function executable_freeze(executable::Executable, options)
     ccall((:hsa_executable_freeze, "libhsa-runtime64"), Status, (Executable, Cstring), executable, options)
 end
 
-function executable_get_info(executable::Executable, attribute::hsa_executable_info_t, value::Ref{Cvoid})
-    ccall((:hsa_executable_get_info, "libhsa-runtime64"), Status, (Executable, hsa_executable_info_t, Ref{Cvoid}), executable, attribute, value)
+function executable_get_info(executable::Executable, attribute::ExecutableInfo, value::Ref{Cvoid})
+    ccall((:hsa_executable_get_info, "libhsa-runtime64"), Status, (Executable, ExecutableInfo, Ref{Cvoid}), executable, attribute, value)
 end
 
 function executable_global_variable_define(executable::Executable, variable_name, address::Ref{Cvoid})
@@ -575,16 +575,16 @@ function executable_validate_alt(executable::Executable, options, result::Ref{UI
     ccall((:hsa_executable_validate_alt, "libhsa-runtime64"), Status, (Executable, Cstring, Ref{UInt32}), executable, options, result)
 end
 
-function executable_get_symbol(executable::Executable, module_name, symbol_name, agent::Agent, call_convention::Int32, symbol::Ref{hsa_executable_symbol_t})
-    ccall((:hsa_executable_get_symbol, "libhsa-runtime64"), Status, (Executable, Cstring, Cstring, Agent, Int32, Ref{hsa_executable_symbol_t}), executable, module_name, symbol_name, agent, call_convention, symbol)
+function executable_get_symbol(executable::Executable, module_name, symbol_name, agent::Agent, call_conventionInteger, symbol::Ref{ExecutableSymbol})
+    ccall((:hsa_executable_get_symbol, "libhsa-runtime64"), Status, (Executable, Cstring, Cstring, Agent, Int32, Ref{ExecutableSymbol}), executable, module_name, symbol_name, agent, call_convention, symbol)
 end
 
-function executable_get_symbol_by_name(executable::Executable, symbol_name, agent::Ref{Agent}, symbol::Ref{hsa_executable_symbol_t})
-    ccall((:hsa_executable_get_symbol_by_name, "libhsa-runtime64"), Status, (Executable, Cstring, Ref{Agent}, Ref{hsa_executable_symbol_t}), executable, symbol_name, agent, symbol)
+function executable_get_symbol_by_name(executable::Executable, symbol_name, agent::Ref{Agent}, symbol::Ref{ExecutableSymbol})
+    ccall((:hsa_executable_get_symbol_by_name, "libhsa-runtime64"), Status, (Executable, Cstring, Ref{Agent}, Ref{ExecutableSymbol}), executable, symbol_name, agent, symbol)
 end
 
-function executable_symbol_get_info(executable_symbol::hsa_executable_symbol_t, attribute::hsa_executable_symbol_info_t, value::Ref{Cvoid})
-    ccall((:hsa_executable_symbol_get_info, "libhsa-runtime64"), Status, (hsa_executable_symbol_t, hsa_executable_symbol_info_t, Ref{Cvoid}), executable_symbol, attribute, value)
+function executable_symbol_get_info(executable_symbol::ExecutableSymbol, attribute::ExecutableSymbolInfo, value::Ref{Cvoid})
+    ccall((:hsa_executable_symbol_get_info, "libhsa-runtime64"), Status, (ExecutableSymbol, ExecutableSymbolInfo, Ref{Cvoid}), executable_symbol, attribute, value)
 end
 
 function executable_iterate_symbols(executable::Executable, callback::Ref{Cvoid}, data::Ref{Cvoid})
@@ -599,11 +599,11 @@ function executable_iterate_program_symbols(executable::Executable, callback::Re
     ccall((:hsa_executable_iterate_program_symbols, "libhsa-runtime64"), Status, (Executable, Ref{Cvoid}, Ref{Cvoid}), executable, callback, data)
 end
 
-function code_object_serialize(code_object::CodeObject, alloc_callback::Ref{Cvoid}, callback_data::hsa_callback_data_t, options, serialized_code_object::Ref{Ref{Cvoid}}, serialized_code_object_size::Ref{Csize_t})
-    ccall((:hsa_code_object_serialize, "libhsa-runtime64"), Status, (CodeObject, Ref{Cvoid}, hsa_callback_data_t, Cstring, Ref{Ref{Cvoid}}, Ref{Csize_t}), code_object, alloc_callback, callback_data, options, serialized_code_object, serialized_code_object_size)
+function code_object_serialize(code_object::CodeObject, alloc_callback::Ref{Cvoid}, callback_data::CallbackData, options, serialized_code_object::Ref{Ref{Cvoid}}, serialized_code_object_size::Ref{Csize_t})
+    ccall((:hsa_code_object_serialize, "libhsa-runtime64"), Status, (CodeObject, Ref{Cvoid}, CallbackData, Cstring, Ref{Ref{Cvoid}}, Ref{Csize_t}), code_object, alloc_callback, callback_data, options, serialized_code_object, serialized_code_object_size)
 end
 
-function code_object_deserialize(serialized_code_object::Ref{Cvoid}, serialized_code_object_size::Csize_t, options, code_object::Ref{CodeObject})
+function code_object_deserialize(serialized_code_object::Ref{Cvoid}, serialized_code_object_size::Integer, options, code_object::Ref{CodeObject})
     ccall((:hsa_code_object_deserialize, "libhsa-runtime64"), Status, (Ref{Cvoid}, Csize_t, Cstring, Ref{CodeObject}), serialized_code_object, serialized_code_object_size, options, code_object)
 end
 
@@ -611,76 +611,76 @@ function code_object_destroy(code_object::CodeObject)
     ccall((:hsa_code_object_destroy, "libhsa-runtime64"), Status, (CodeObject,), code_object)
 end
 
-function code_object_get_info(code_object::CodeObject, attribute::hsa_code_object_info_t, value::Ref{Cvoid})
-    ccall((:hsa_code_object_get_info, "libhsa-runtime64"), Status, (CodeObject, hsa_code_object_info_t, Ref{Cvoid}), code_object, attribute, value)
+function code_object_get_info(code_object::CodeObject, attribute::CodeObjectInfo, value::Ref{Cvoid})
+    ccall((:hsa_code_object_get_info, "libhsa-runtime64"), Status, (CodeObject, CodeObjectInfo, Ref{Cvoid}), code_object, attribute, value)
 end
 
 function executable_load_code_object(executable::Executable, agent::Agent, code_object::CodeObject, options)
     ccall((:hsa_executable_load_code_object, "libhsa-runtime64"), Status, (Executable, Agent, CodeObject, Cstring), executable, agent, code_object, options)
 end
 
-function code_object_get_symbol(code_object::CodeObject, symbol_name, symbol::Ref{hsa_code_symbol_t})
-    ccall((:hsa_code_object_get_symbol, "libhsa-runtime64"), Status, (CodeObject, Cstring, Ref{hsa_code_symbol_t}), code_object, symbol_name, symbol)
+function code_object_get_symbol(code_object::CodeObject, symbol_name, symbol::Ref{CodeSymbol})
+    ccall((:hsa_code_object_get_symbol, "libhsa-runtime64"), Status, (CodeObject, Cstring, Ref{CodeSymbol}), code_object, symbol_name, symbol)
 end
 
-function code_object_get_symbol_from_name(code_object::CodeObject, module_name, symbol_name, symbol::Ref{hsa_code_symbol_t})
-    ccall((:hsa_code_object_get_symbol_from_name, "libhsa-runtime64"), Status, (CodeObject, Cstring, Cstring, Ref{hsa_code_symbol_t}), code_object, module_name, symbol_name, symbol)
+function code_object_get_symbol_from_name(code_object::CodeObject, module_name, symbol_name, symbol::Ref{CodeSymbol})
+    ccall((:hsa_code_object_get_symbol_from_name, "libhsa-runtime64"), Status, (CodeObject, Cstring, Cstring, Ref{CodeSymbol}), code_object, module_name, symbol_name, symbol)
 end
 
-function code_symbol_get_info(code_symbol::hsa_code_symbol_t, attribute::hsa_code_symbol_info_t, value::Ref{Cvoid})
-    ccall((:hsa_code_symbol_get_info, "libhsa-runtime64"), Status, (hsa_code_symbol_t, hsa_code_symbol_info_t, Ref{Cvoid}), code_symbol, attribute, value)
+function code_symbol_get_info(code_symbol::CodeSymbol, attribute::CodeSymbolInfo, value::Ref{Cvoid})
+    ccall((:hsa_code_symbol_get_info, "libhsa-runtime64"), Status, (CodeSymbol, CodeSymbolInfo, Ref{Cvoid}), code_symbol, attribute, value)
 end
 
 function code_object_iterate_symbols(code_object::CodeObject, callback::Ref{Cvoid}, data::Ref{Cvoid})
     ccall((:hsa_code_object_iterate_symbols, "libhsa-runtime64"), Status, (CodeObject, Ref{Cvoid}, Ref{Cvoid}), code_object, callback, data)
 end
 
-function amd_queue_intercept_register(queue::Ref{Queue}, callback::hsa_amd_queue_intercept_handler, user_data::Ref{Cvoid})
-    ccall((:hsa_amd_queue_intercept_register, "libhsa-runtime64"), Status, (Ref{Queue}, hsa_amd_queue_intercept_handler, Ref{Cvoid}), queue, callback, user_data)
+function amd_queue_intercept_register(queue::Ref{Queue}, callback::QueueInterceptHandler, user_data::Ref{Cvoid})
+    ccall((:hsa_amd_queue_intercept_register, "libhsa-runtime64"), Status, (Ref{Queue}, QueueInterceptHandler, Ref{Cvoid}), queue, callback, user_data)
 end
 
-function amd_queue_intercept_create(agent_handle::Agent, size::UInt32, type::Queueype32_t, callback::Ref{Cvoid}, data::Ref{Cvoid}, private_segment_size::UInt32, group_segment_size::UInt32, queue::Ref{Ref{Queue}})
-    ccall((:hsa_amd_queue_intercept_create, "libhsa-runtime64"), Status, (Agent, UInt32, Queueype32_t, Ref{Cvoid}, Ref{Cvoid}, UInt32, UInt32, Ref{Ref{Queue}}), agent_handle, size, type, callback, data, private_segment_size, group_segment_size, queue)
+function amd_queue_intercept_create(agent_handle::Agent, size::Integer, type::QueueType, callback::Ref{Cvoid}, data::Ref{Cvoid}, private_segment_size::Integer, group_segment_size::Integer, queue::Ref{Ref{Queue}})
+    ccall((:hsa_amd_queue_intercept_create, "libhsa-runtime64"), Status, (Agent, UInt32, QueueType, Ref{Cvoid}, Ref{Cvoid}, UInt32, UInt32, Ref{Ref{Queue}}), agent_handle, size, type, callback, data, private_segment_size, group_segment_size, queue)
 end
 
-function amd_runtime_queue_create_register(callback::hsa_amd_runtime_queue_notifier, user_data::Ref{Cvoid})
-    ccall((:hsa_amd_runtime_queue_create_register, "libhsa-runtime64"), Status, (hsa_amd_runtime_queue_notifier, Ref{Cvoid}), callback, user_data)
+function amd_runtime_queue_create_register(callback::RuntimeQueueNotifier, user_data::Ref{Cvoid})
+    ccall((:hsa_amd_runtime_queue_create_register, "libhsa-runtime64"), Status, (RuntimeQueueNotifier, Ref{Cvoid}), callback, user_data)
 end
-
-function Api(src::Ref{Cvoid}, dest::Ref{Cvoid}, size::Csize_t)
+#=
+function copyApi(src::Ref{Cvoid}, dest::Ref{Cvoid}, size::Integer)
     ccall((:copyApi, "libhsa-runtime64"), Cvoid, (Ref{Cvoid}, Ref{Cvoid}, Csize_t), src, dest, size)
 end
 
-function Element(dest::Ref{ApiTableVersion}, src::Ref{ApiTableVersion})
+function copyElement(dest::Ref{ApiTableVersion}, src::Ref{ApiTableVersion})
     ccall((:copyElement, "libhsa-runtime64"), Cvoid, (Ref{ApiTableVersion}, Ref{ApiTableVersion}), dest, src)
 end
 
-function Tables(src::Ref{HsaApiTable}, dest::Ref{HsaApiTable})
+function copyTables(src::Ref{HsaApiTable}, dest::Ref{HsaApiTable})
     ccall((:copyTables, "libhsa-runtime64"), Cvoid, (Ref{HsaApiTable}, Ref{HsaApiTable}), src, dest)
 end
-
-function ext_image_get_capability(agent::Agent, geometry::hsa_ext_image_geometry_t, image_format::Ref{hsa_ext_image_format_t}, capability_mask::Ref{UInt32})
-    ccall((:hsa_ext_image_get_capability, "libhsa-runtime64"), Status, (Agent, hsa_ext_image_geometry_t, Ref{hsa_ext_image_format_t}, Ref{UInt32}), agent, geometry, image_format, capability_mask)
+=#
+function ext_image_get_capability(agent::Agent, geometry::ImageGeometry, image_format::Ref{ImageFormat}, capability_mask::Ref{UInt32})
+    ccall((:hsa_ext_image_get_capability, "libhsa-runtime64"), Status, (Agent, ImageGeometry, Ref{ImageFormat}, Ref{UInt32}), agent, geometry, image_format, capability_mask)
 end
 
-function ext_image_get_capability_with_layout(agent::Agent, geometry::hsa_ext_image_geometry_t, image_format::Ref{hsa_ext_image_format_t}, image_data_layout::hsa_ext_image_data_layout_t, capability_mask::Ref{UInt32})
-    ccall((:hsa_ext_image_get_capability_with_layout, "libhsa-runtime64"), Status, (Agent, hsa_ext_image_geometry_t, Ref{hsa_ext_image_format_t}, hsa_ext_image_data_layout_t, Ref{UInt32}), agent, geometry, image_format, image_data_layout, capability_mask)
+function ext_image_get_capability_with_layout(agent::Agent, geometry::ImageGeometry, image_format::Ref{ImageFormat}, image_data_layout::ImageDataLayout, capability_mask::Ref{UInt32})
+    ccall((:hsa_ext_image_get_capability_with_layout, "libhsa-runtime64"), Status, (Agent, ImageGeometry, Ref{ImageFormat}, ImageDataLayout, Ref{UInt32}), agent, geometry, image_format, image_data_layout, capability_mask)
 end
 
-function ext_image_data_get_info(agent::Agent, image_descriptor::Ref{ExtImageDescriptor}, access_permission::AccessPermission, image_data_info::Ref{hsa_ext_image_data_info_t})
-    ccall((:hsa_ext_image_data_get_info, "libhsa-runtime64"), Status, (Agent, Ref{ExtImageDescriptor}, AccessPermission, Ref{hsa_ext_image_data_info_t}), agent, image_descriptor, access_permission, image_data_info)
+function ext_image_data_get_info(agent::Agent, image_descriptor::Ref{ExtImageDescriptor}, access_permission::AccessPermission, image_data_info::Ref{ImageDataInfo})
+    ccall((:hsa_ext_image_data_get_info, "libhsa-runtime64"), Status, (Agent, Ref{ExtImageDescriptor}, AccessPermission, Ref{ImageDataInfo}), agent, image_descriptor, access_permission, image_data_info)
 end
 
-function ext_image_data_get_info_with_layout(agent::Agent, image_descriptor::Ref{ExtImageDescriptor}, access_permission::AccessPermission, image_data_layout::hsa_ext_image_data_layout_t, image_data_row_pitch::Csize_t, image_data_slice_pitch::Csize_t, image_data_info::Ref{hsa_ext_image_data_info_t})
-    ccall((:hsa_ext_image_data_get_info_with_layout, "libhsa-runtime64"), Status, (Agent, Ref{ExtImageDescriptor}, AccessPermission, hsa_ext_image_data_layout_t, Csize_t, Csize_t, Ref{hsa_ext_image_data_info_t}), agent, image_descriptor, access_permission, image_data_layout, image_data_row_pitch, image_data_slice_pitch, image_data_info)
+function ext_image_data_get_info_with_layout(agent::Agent, image_descriptor::Ref{ExtImageDescriptor}, access_permission::AccessPermission, image_data_layout::ImageDataLayout, image_data_row_pitch::Integer, image_data_slice_pitch::Integer, image_data_info::Ref{ImageDataInfo})
+    ccall((:hsa_ext_image_data_get_info_with_layout, "libhsa-runtime64"), Status, (Agent, Ref{ExtImageDescriptor}, AccessPermission, ImageDataLayout, Csize_t, Csize_t, Ref{ImageDataInfo}), agent, image_descriptor, access_permission, image_data_layout, image_data_row_pitch, image_data_slice_pitch, image_data_info)
 end
 
 function ext_image_create(agent::Agent, image_descriptor::Ref{ExtImageDescriptor}, image_data::Ref{Cvoid}, access_permission::AccessPermission, image::Ref{Image})
     ccall((:hsa_ext_image_create, "libhsa-runtime64"), Status, (Agent, Ref{ExtImageDescriptor}, Ref{Cvoid}, AccessPermission, Ref{Image}), agent, image_descriptor, image_data, access_permission, image)
 end
 
-function ext_image_create_with_layout(agent::Agent, image_descriptor::Ref{ExtImageDescriptor}, image_data::Ref{Cvoid}, access_permission::AccessPermission, image_data_layout::hsa_ext_image_data_layout_t, image_data_row_pitch::Csize_t, image_data_slice_pitch::Csize_t, image::Ref{Image})
-    ccall((:hsa_ext_image_create_with_layout, "libhsa-runtime64"), Status, (Agent, Ref{ExtImageDescriptor}, Ref{Cvoid}, AccessPermission, hsa_ext_image_data_layout_t, Csize_t, Csize_t, Ref{Image}), agent, image_descriptor, image_data, access_permission, image_data_layout, image_data_row_pitch, image_data_slice_pitch, image)
+function ext_image_create_with_layout(agent::Agent, image_descriptor::Ref{ExtImageDescriptor}, image_data::Ref{Cvoid}, access_permission::AccessPermission, image_data_layout::ImageDataLayout, image_data_row_pitch::Integer, image_data_slice_pitch::Integer, image::Ref{Image})
+    ccall((:hsa_ext_image_create_with_layout, "libhsa-runtime64"), Status, (Agent, Ref{ExtImageDescriptor}, Ref{Cvoid}, AccessPermission, ImageDataLayout, Csize_t, Csize_t, Ref{Image}), agent, image_descriptor, image_data, access_permission, image_data_layout, image_data_row_pitch, image_data_slice_pitch, image)
 end
 
 function ext_image_destroy(agent::Agent, image::Image)
@@ -691,32 +691,32 @@ function ext_image_copy(agent::Agent, src_image::Image, src_offset::Ref{Dim3}, d
     ccall((:hsa_ext_image_copy, "libhsa-runtime64"), Status, (Agent, Image, Ref{Dim3}, Image, Ref{Dim3}, Ref{Dim3}), agent, src_image, src_offset, dst_image, dst_offset, range)
 end
 
-function ext_image_import(agent::Agent, src_memory::Ref{Cvoid}, src_row_pitch::Csize_t, src_slice_pitch::Csize_t, dst_image::Image, image_region::Ref{hsa_ext_image_region_t})
-    ccall((:hsa_ext_image_import, "libhsa-runtime64"), Status, (Agent, Ref{Cvoid}, Csize_t, Csize_t, Image, Ref{hsa_ext_image_region_t}), agent, src_memory, src_row_pitch, src_slice_pitch, dst_image, image_region)
+function ext_image_import(agent::Agent, src_memory::Ref{Cvoid}, src_row_pitch::Integer, src_slice_pitch::Integer, dst_image::Image, image_region::Ref{ImageRegion})
+    ccall((:hsa_ext_image_import, "libhsa-runtime64"), Status, (Agent, Ref{Cvoid}, Csize_t, Csize_t, Image, Ref{ImageRegion}), agent, src_memory, src_row_pitch, src_slice_pitch, dst_image, image_region)
 end
 
-function ext_image_export(agent::Agent, src_image::Image, dst_memory::Ref{Cvoid}, dst_row_pitch::Csize_t, dst_slice_pitch::Csize_t, image_region::Ref{hsa_ext_image_region_t})
-    ccall((:hsa_ext_image_export, "libhsa-runtime64"), Status, (Agent, Image, Ref{Cvoid}, Csize_t, Csize_t, Ref{hsa_ext_image_region_t}), agent, src_image, dst_memory, dst_row_pitch, dst_slice_pitch, image_region)
+function ext_image_export(agent::Agent, src_image::Image, dst_memory::Ref{Cvoid}, dst_row_pitch::Integer, dst_slice_pitch::Integer, image_region::Ref{ImageRegion})
+    ccall((:hsa_ext_image_export, "libhsa-runtime64"), Status, (Agent, Image, Ref{Cvoid}, Csize_t, Csize_t, Ref{ImageRegion}), agent, src_image, dst_memory, dst_row_pitch, dst_slice_pitch, image_region)
 end
 
-function ext_image_clear(agent::Agent, image::Image, data::Ref{Cvoid}, image_region::Ref{hsa_ext_image_region_t})
-    ccall((:hsa_ext_image_clear, "libhsa-runtime64"), Status, (Agent, Image, Ref{Cvoid}, Ref{hsa_ext_image_region_t}), agent, image, data, image_region)
+function ext_image_clear(agent::Agent, image::Image, data::Ref{Cvoid}, image_region::Ref{ImageRegion})
+    ccall((:hsa_ext_image_clear, "libhsa-runtime64"), Status, (Agent, Image, Ref{Cvoid}, Ref{ImageRegion}), agent, image, data, image_region)
 end
 
-function ext_sampler_create(agent::Agent, sampler_descriptor::Ref{hsa_ext_sampler_descriptor_t}, sampler::Ref{hsa_ext_sampler_t})
-    ccall((:hsa_ext_sampler_create, "libhsa-runtime64"), Status, (Agent, Ref{hsa_ext_sampler_descriptor_t}, Ref{hsa_ext_sampler_t}), agent, sampler_descriptor, sampler)
+function ext_sampler_create(agent::Agent, sampler_descriptor::Ref{ExtSamplerDescriptor}, sampler::Ref{Sampler})
+    ccall((:hsa_ext_sampler_create, "libhsa-runtime64"), Status, (Agent, Ref{ExtSamplerDescriptor}, Ref{Sampler}), agent, sampler_descriptor, sampler)
 end
 
-function ext_sampler_destroy(agent::Agent, sampler::hsa_ext_sampler_t)
-    ccall((:hsa_ext_sampler_destroy, "libhsa-runtime64"), Status, (Agent, hsa_ext_sampler_t), agent, sampler)
+function ext_sampler_destroy(agent::Agent, sampler::Sampler)
+    ccall((:hsa_ext_sampler_destroy, "libhsa-runtime64"), Status, (Agent, Sampler), agent, sampler)
 end
 
-function amd_coherency_get_type(agent::Agent, type::Ref{hsa_amd_coherency_type_t})
-    ccall((:hsa_amd_coherency_get_type, "libhsa-runtime64"), Status, (Agent, Ref{hsa_amd_coherency_type_t}), agent, type)
+function amd_coherency_get_type(agent::Agent, type::Ref{CoherencyType})
+    ccall((:hsa_amd_coherency_get_type, "libhsa-runtime64"), Status, (Agent, Ref{CoherencyType}), agent, type)
 end
 
-function amd_coherency_set_type(agent::Agent, type::hsa_amd_coherency_type_t)
-    ccall((:hsa_amd_coherency_set_type, "libhsa-runtime64"), Status, (Agent, hsa_amd_coherency_type_t), agent, type)
+function amd_coherency_set_type(agent::Agent, type::CoherencyType)
+    ccall((:hsa_amd_coherency_set_type, "libhsa-runtime64"), Status, (Agent, CoherencyType), agent, type)
 end
 
 function amd_profiling_set_profiler_enabled(queue::Ref{Queue}, enable::Cint)
@@ -727,31 +727,31 @@ function amd_profiling_async_copy_enable(enable::Bool)
     ccall((:hsa_amd_profiling_async_copy_enable, "libhsa-runtime64"), Status, (Bool,), enable)
 end
 
-function amd_profiling_get_dispatch_time(agent::Agent, signal::Signal, time::Ref{hsa_amd_profiling_dispatch_time_t})
-    ccall((:hsa_amd_profiling_get_dispatch_time, "libhsa-runtime64"), Status, (Agent, Signal, Ref{hsa_amd_profiling_dispatch_time_t}), agent, signal, time)
+function amd_profiling_get_dispatch_time(agent::Agent, signal::Signal, time::Ref{ProfilingDispatchTime})
+    ccall((:hsa_amd_profiling_get_dispatch_time, "libhsa-runtime64"), Status, (Agent, Signal, Ref{ProfilingDispatchTime}), agent, signal, time)
 end
 
-function amd_profiling_get_async_copy_time(signal::Signal, time::Ref{hsa_amd_profiling_async_copy_time_t})
-    ccall((:hsa_amd_profiling_get_async_copy_time, "libhsa-runtime64"), Status, (Signal, Ref{hsa_amd_profiling_async_copy_time_t}), signal, time)
+function amd_profiling_get_async_copy_time(signal::Signal, time::Ref{ProfilingAsyncCopyTime})
+    ccall((:hsa_amd_profiling_get_async_copy_time, "libhsa-runtime64"), Status, (Signal, Ref{ProfilingAsyncCopyTime}), signal, time)
 end
 
 function amd_profiling_convert_tick_to_system_domain(agent::Agent, agent_tick::UInt64, system_tick::Ref{UInt64})
     ccall((:hsa_amd_profiling_convert_tick_to_system_domain, "libhsa-runtime64"), Status, (Agent, UInt64, Ref{UInt64}), agent, agent_tick, system_tick)
 end
 
-function amd_signal_create(initial_value::SignalValue, num_consumers::UInt32, consumers::Ref{Agent}, attributes::UInt64, signal::Ref{Signal})
+function amd_signal_create(initial_value::SignalValue, num_consumers::Integer, consumers::Ref{Agent}, attributes::UInt64, signal::Ref{Signal})
     ccall((:hsa_amd_signal_create, "libhsa-runtime64"), Status, (SignalValue, UInt32, Ref{Agent}, UInt64, Ref{Signal}), initial_value, num_consumers, consumers, attributes, signal)
 end
 
-function amd_signal_async_handler(signal::Signal, cond::SignalCondition, value::SignalValue, handler::hsa_amd_signal_handler, arg::Ref{Cvoid})
-    ccall((:hsa_amd_signal_async_handler, "libhsa-runtime64"), Status, (Signal, SignalCondition, SignalValue, hsa_amd_signal_handler, Ref{Cvoid}), signal, cond, value, handler, arg)
+function amd_signal_async_handler(signal::Signal, cond::SignalCondition, value::SignalValue, handler::SignalHandler, arg::Ref{Cvoid})
+    ccall((:hsa_amd_signal_async_handler, "libhsa-runtime64"), Status, (Signal, SignalCondition, SignalValue, SignalHandler, Ref{Cvoid}), signal, cond, value, handler, arg)
 end
 
 function amd_async_function(callback::Ref{Cvoid}, arg::Ref{Cvoid})
     ccall((:hsa_amd_async_function, "libhsa-runtime64"), Status, (Ref{Cvoid}, Ref{Cvoid}), callback, arg)
 end
 
-function amd_signal_wait_any(signal_count::UInt32, signals::Ref{Signal}, conds::Ref{SignalCondition}, values::Ref{SignalValue}, timeout_hint::UInt64, wait_hint::WaitState, satisfying_value::Ref{SignalValue})
+function amd_signal_wait_any(signal_count::Integer, signals::Ref{Signal}, conds::Ref{SignalCondition}, values::Ref{SignalValue}, timeout_hint::UInt64, wait_hint::WaitState, satisfying_value::Ref{SignalValue})
     ccall((:hsa_amd_signal_wait_any, "libhsa-runtime64"), UInt32, (UInt32, Ref{Signal}, Ref{SignalCondition}, Ref{SignalValue}, UInt64, WaitState, Ref{SignalValue}), signal_count, signals, conds, values, timeout_hint, wait_hint, satisfying_value)
 end
 
@@ -759,7 +759,7 @@ function amd_image_get_info_max_dim(agent::Agent, attribute::AgentInfo, value::R
     ccall((:hsa_amd_image_get_info_max_dim, "libhsa-runtime64"), Status, (Agent, AgentInfo, Ref{Cvoid}), agent, attribute, value)
 end
 
-function amd_queue_cu_set_mask(queue::Ref{Queue}, num_cu_mask_count::UInt32, cu_mask::Ref{UInt32})
+function amd_queue_cu_set_mask(queue::Ref{Queue}, num_cu_mask_count::Integer, cu_mask::Ref{UInt32})
     ccall((:hsa_amd_queue_cu_set_mask, "libhsa-runtime64"), Status, (Ref{Queue}, UInt32, Ref{UInt32}), queue, num_cu_mask_count, cu_mask)
 end
 
@@ -771,7 +771,7 @@ function amd_agent_iterate_memory_pools(agent::Agent, callback::Ref{Cvoid}, data
     ccall((:hsa_amd_agent_iterate_memory_pools, "libhsa-runtime64"), Status, (Agent, Ref{Cvoid}, Ref{Cvoid}), agent, callback, data)
 end
 
-function amd_memory_pool_allocate(memory_pool::MemoryPool, size::Csize_t, flags::UInt32, ptr::Ref{Ref{Cvoid}})
+function amd_memory_pool_allocate(memory_pool::MemoryPool, size::Integer, flags::Integer, ptr::Ref{Ref{Cvoid}})
     ccall((:hsa_amd_memory_pool_allocate, "libhsa-runtime64"), Status, (MemoryPool, Csize_t, UInt32, Ref{Ref{Cvoid}}), memory_pool, size, flags, ptr)
 end
 
@@ -779,11 +779,11 @@ function amd_memory_pool_free(ptr::Ref{Cvoid})
     ccall((:hsa_amd_memory_pool_free, "libhsa-runtime64"), Status, (Ref{Cvoid},), ptr)
 end
 
-function amd_memory_async_copy(dst::Ref{Cvoid}, dst_agent::Agent, src::Ref{Cvoid}, src_agent::Agent, size::Csize_t, num_dep_signals::UInt32, dep_signals::Ref{Signal}, completion_signal::Signal)
+function amd_memory_async_copy(dst::Ref{Cvoid}, dst_agent::Agent, src::Ref{Cvoid}, src_agent::Agent, size::Integer, num_dep_signals::Integer, dep_signals::Ref{Signal}, completion_signal::Signal)
     ccall((:hsa_amd_memory_async_copy, "libhsa-runtime64"), Status, (Ref{Cvoid}, Agent, Ref{Cvoid}, Agent, Csize_t, UInt32, Ref{Signal}, Signal), dst, dst_agent, src, src_agent, size, num_dep_signals, dep_signals, completion_signal)
 end
 
-function amd_memory_async_copy_rect(dst::Ref{PitchedPtr}, dst_offset::Ref{Dim3}, src::Ref{PitchedPtr}, src_offset::Ref{Dim3}, range::Ref{Dim3}, copy_agent::Agent, dir::CopyDirection, num_dep_signals::UInt32, dep_signals::Ref{Signal}, completion_signal::Signal)
+function amd_memory_async_copy_rect(dst::Ref{PitchedPtr}, dst_offset::Ref{Dim3}, src::Ref{PitchedPtr}, src_offset::Ref{Dim3}, range::Ref{Dim3}, copy_agent::Agent, dir::CopyDirection, num_dep_signals::Integer, dep_signals::Ref{Signal}, completion_signal::Signal)
     ccall((:hsa_amd_memory_async_copy_rect, "libhsa-runtime64"), Status, (Ref{PitchedPtr}, Ref{Dim3}, Ref{PitchedPtr}, Ref{Dim3}, Ref{Dim3}, Agent, CopyDirection, UInt32, Ref{Signal}, Signal), dst, dst_offset, src, src_offset, range, copy_agent, dir, num_dep_signals, dep_signals, completion_signal)
 end
 
@@ -791,7 +791,7 @@ function amd_agent_memory_pool_get_info(agent::Agent, memory_pool::MemoryPool, a
     ccall((:hsa_amd_agent_memory_pool_get_info, "libhsa-runtime64"), Status, (Agent, MemoryPool, AgentMemoryPoolInfo, Ref{Cvoid}), agent, memory_pool, attribute, value)
 end
 
-function amd_agents_allow_access(num_agents::UInt32, agents::Ref{Agent}, flags::Ref{UInt32}, ptr::Ref{Cvoid})
+function amd_agents_allow_access(num_agents::Integer, agents::Ref{Agent}, flags::Ref{UInt32}, ptr::Ref{Cvoid})
     ccall((:hsa_amd_agents_allow_access, "libhsa-runtime64"), Status, (UInt32, Ref{Agent}, Ref{UInt32}, Ref{Cvoid}), num_agents, agents, flags, ptr)
 end
 
@@ -799,15 +799,15 @@ function amd_memory_pool_can_migrate(src_memory_pool::MemoryPool, dst_memory_poo
     ccall((:hsa_amd_memory_pool_can_migrate, "libhsa-runtime64"), Status, (MemoryPool, MemoryPool, Ref{Bool}), src_memory_pool, dst_memory_pool, result)
 end
 
-function amd_memory_migrate(ptr::Ref{Cvoid}, memory_pool::MemoryPool, flags::UInt32)
+function amd_memory_migrate(ptr::Ref{Cvoid}, memory_pool::MemoryPool, flags::Integer)
     ccall((:hsa_amd_memory_migrate, "libhsa-runtime64"), Status, (Ref{Cvoid}, MemoryPool, UInt32), ptr, memory_pool, flags)
 end
 
-function amd_memory_lock(host_ptr::Ref{Cvoid}, size::Csize_t, agents::Ref{Agent}, num_agent::Cint, agent_ptr::Ref{Ref{Cvoid}})
+function amd_memory_lock(host_ptr::Ref{Cvoid}, size::Integer, agents::Ref{Agent}, num_agent::Cint, agent_ptr::Ref{Ref{Cvoid}})
     ccall((:hsa_amd_memory_lock, "libhsa-runtime64"), Status, (Ref{Cvoid}, Csize_t, Ref{Agent}, Cint, Ref{Ref{Cvoid}}), host_ptr, size, agents, num_agent, agent_ptr)
 end
 
-function amd_memory_lock_to_pool(host_ptr::Ref{Cvoid}, size::Csize_t, agents::Ref{Agent}, num_agent::Cint, pool::MemoryPool, flags::UInt32, agent_ptr::Ref{Ref{Cvoid}})
+function amd_memory_lock_to_pool(host_ptr::Ref{Cvoid}, size::Integer, agents::Ref{Agent}, num_agent::Cint, pool::MemoryPool, flags::Integer, agent_ptr::Ref{Ref{Cvoid}})
     ccall((:hsa_amd_memory_lock_to_pool, "libhsa-runtime64"), Status, (Ref{Cvoid}, Csize_t, Ref{Agent}, Cint, MemoryPool, UInt32, Ref{Ref{Cvoid}}), host_ptr, size, agents, num_agent, pool, flags, agent_ptr)
 end
 
@@ -815,11 +815,11 @@ function amd_memory_unlock(host_ptr::Ref{Cvoid})
     ccall((:hsa_amd_memory_unlock, "libhsa-runtime64"), Status, (Ref{Cvoid},), host_ptr)
 end
 
-function amd_memory_fill(ptr::Ref{Cvoid}, value::UInt32, count::Csize_t)
+function amd_memory_fill(ptr::Ref{Cvoid}, value::Integer, count::Integer)
     ccall((:hsa_amd_memory_fill, "libhsa-runtime64"), Status, (Ref{Cvoid}, UInt32, Csize_t), ptr, value, count)
 end
 
-function amd_interop_map_buffer(num_agents::UInt32, agents::Ref{Agent}, interop_handle::Cint, flags::UInt32, size::Ref{Csize_t}, ptr::Ref{Ref{Cvoid}}, metadata_size::Ref{Csize_t}, metadata::Ref{Ref{Cvoid}})
+function amd_interop_map_buffer(num_agents::Integer, agents::Ref{Agent}, interop_handle::Cint, flags::Integer, size::Ref{Csize_t}, ptr::Ref{Ref{Cvoid}}, metadata_size::Ref{Csize_t}, metadata::Ref{Ref{Cvoid}})
     ccall((:hsa_amd_interop_map_buffer, "libhsa-runtime64"), Status, (UInt32, Ref{Agent}, Cint, UInt32, Ref{Csize_t}, Ref{Ref{Cvoid}}, Ref{Csize_t}, Ref{Ref{Cvoid}}), num_agents, agents, interop_handle, flags, size, ptr, metadata_size, metadata)
 end
 
@@ -839,11 +839,11 @@ function amd_pointer_info_set_userdata(ptr::Ref{Cvoid}, userdata::Ref{Cvoid})
     ccall((:hsa_amd_pointer_info_set_userdata, "libhsa-runtime64"), Status, (Ref{Cvoid}, Ref{Cvoid}), ptr, userdata)
 end
 
-function amd_ipc_memory_create(ptr::Ref{Cvoid}, len::Csize_t, handle::Ref{IPCMemory})
+function amd_ipc_memory_create(ptr::Ref{Cvoid}, len::Integer, handle::Ref{IPCMemory})
     ccall((:hsa_amd_ipc_memory_create, "libhsa-runtime64"), Status, (Ref{Cvoid}, Csize_t, Ref{IPCMemory}), ptr, len, handle)
 end
 
-function amd_ipc_memory_attach(handle::Ref{IPCMemory}, len::Csize_t, num_agents::UInt32, mapping_agents::Ref{Agent}, mapped_ptr::Ref{Ref{Cvoid}})
+function amd_ipc_memory_attach(handle::Ref{IPCMemory}, len::Integer, num_agents::Integer, mapping_agents::Ref{Agent}, mapped_ptr::Ref{Ref{Cvoid}})
     ccall((:hsa_amd_ipc_memory_attach, "libhsa-runtime64"), Status, (Ref{IPCMemory}, Csize_t, UInt32, Ref{Agent}, Ref{Ref{Cvoid}}), handle, len, num_agents, mapping_agents, mapped_ptr)
 end
 
@@ -879,15 +879,17 @@ function ext_tools_set_correlation_handler(agent::Agent, correlation_handle::Ref
     ccall((:hsa_ext_tools_set_correlation_handler, "libhsa-runtime64"), Status, (Agent, Ref{Cvoid}), agent, correlation_handle)
 end
 
-function ext_tools_wave_control(agent::Agent, action::WaveAction, mode::WaveMode, trap_id::UInt32, msg_ptr::Ref{Cvoid})
+function ext_tools_wave_control(agent::Agent, action::WaveAction, mode::WaveMode, trap_id::Integer, msg_ptr::Ref{Cvoid})
     ccall((:hsa_ext_tools_wave_control, "libhsa-runtime64"), Status, (Agent, WaveAction, WaveMode, UInt32, Ref{Cvoid}), agent, action, mode, trap_id, msg_ptr)
 end
 
+#=
 function ext_tools_flush_cache(agent::Agent, options::CacheFlushOptions)
     ccall((:hsa_ext_tools_flush_cache, "libhsa-runtime64"), Status, (Agent, CacheFlushOptions), agent, options)
 end
+=#
 
-function ext_tools_install_trap(agent::Agent, type::TrapType, trap_handler::Ref{Cvoid}, trap_buffer::Ref{Cvoid}, trap_handler_size::Csize_t, trap_buffer_size::Csize_t)
+function ext_tools_install_trap(agent::Agent, type::TrapType, trap_handler::Ref{Cvoid}, trap_buffer::Ref{Cvoid}, trap_handler_size::Integer, trap_buffer_size::Integer)
     ccall((:hsa_ext_tools_install_trap, "libhsa-runtime64"), Status, (Agent, TrapType, Ref{Cvoid}, Ref{Cvoid}, Csize_t, Csize_t), agent, type, trap_handler, trap_buffer, trap_handler_size, trap_buffer_size)
 end
 
@@ -915,7 +917,7 @@ function ext_tools_unregister(agent::Agent)
     ccall((:hsa_ext_tools_unregister, "libhsa-runtime64"), Status, (Agent,), agent)
 end
 
-function ext_tools_address_watch(agent::Agent, num_watch_points::UInt32, mode::Ref{AddressWatchMode}, watch_address::Ref{Ref{Cvoid}}, watch_mask::Ref{UInt64}, watch_event::Ref{ToolsEvent})
+function ext_tools_address_watch(agent::Agent, num_watch_points::Integer, mode::Ref{AddressWatchMode}, watch_address::Ref{Ref{Cvoid}}, watch_mask::Ref{UInt64}, watch_event::Ref{ToolsEvent})
     ccall((:hsa_ext_tools_address_watch, "libhsa-runtime64"), Status, (Agent, UInt32, Ref{AddressWatchMode}, Ref{Ref{Cvoid}}, Ref{UInt64}, Ref{ToolsEvent}), agent, num_watch_points, mode, watch_address, watch_mask, watch_event)
 end
 
@@ -923,7 +925,7 @@ function ext_tools_get_dispatch_debug_info(agent::Agent, info::Ref{DispatchDebug
     ccall((:hsa_ext_tools_get_dispatch_debug_info, "libhsa-runtime64"), Status, (Agent, Ref{DispatchDebugInfo}), agent, info)
 end
 
-function ext_tools_dmacopy(agent::Agent, src_addr::Ref{UInt32}, dst_addr::Ref{UInt32}, size::UInt32)
+function ext_tools_dmacopy(agent::Agent, src_addr::Ref{UInt32}, dst_addr::Ref{UInt32}, size::Integer)
     ccall((:hsa_ext_tools_dmacopy, "libhsa-runtime64"), Status, (Agent, Ref{UInt32}, Ref{UInt32}, UInt32), agent, src_addr, dst_addr, size)
 end
 
@@ -931,7 +933,7 @@ function ext_tools_create_event(agent::Agent, auto_reset::Bool, event::Ref{Tools
     ccall((:hsa_ext_tools_create_event, "libhsa-runtime64"), Status, (Agent, Bool, Ref{ToolsEvent}, Ref{UInt32}), agent, auto_reset, event, event_id)
 end
 
-function ext_tools_wait_event(timeout::Int32, event::ToolsEvent)
+function ext_tools_wait_event(timeoutInteger, event::ToolsEvent)
     ccall((:hsa_ext_tools_wait_event, "libhsa-runtime64"), EventWaitStatus, (Int32, ToolsEvent), timeout, event)
 end
 
@@ -939,8 +941,8 @@ function ext_tools_destroy_event(event::ToolsEvent)
     ccall((:hsa_ext_tools_destroy_event, "libhsa-runtime64"), Status, (ToolsEvent,), event)
 end
 
-function ext_program_create(machine_model::MachineModel, profile::Profile, default_float_rounding_mode::FloatRoundingMode, options, program::Ref{ExtProgram})
-    ccall((:hsa_ext_program_create, "libhsa-runtime64"), Status, (MachineModel, Profile, FloatRoundingMode, Cstring, Ref{ExtProgram}), machine_model, profile, default_float_rounding_mode, options, program)
+function ext_program_create(machine_model::MachineModel, profile::Profile, default_float_rounding_mode::DefaultFloatRoundingMode, options, program::Ref{ExtProgram})
+    ccall((:hsa_ext_program_create, "libhsa-runtime64"), Status, (MachineModel, Profile, DefaultFloatRoundingMode, Cstring, Ref{ExtProgram}), machine_model, profile, default_float_rounding_mode, options, program)
 end
 
 function ext_program_destroy(program::ExtProgram)
@@ -959,8 +961,8 @@ function ext_program_get_info(program::ExtProgram, attribute::ProgramInfo, value
     ccall((:hsa_ext_program_get_info, "libhsa-runtime64"), Status, (ExtProgram, ProgramInfo, Ref{Cvoid}), program, attribute, value)
 end
 
-function ext_program_finalize(program::ExtProgram, isa::ISA, call_convention::Int32, control_directives::ControlDirectives, options, code_object_type::CodeObjectType, code_object::Ref{CodeObject})
-    ccall((:hsa_ext_program_finalize, "libhsa-runtime64"), Status, (ExtProgram, ISA, Int32, ControlDirectives, Cstring, CodeObjectType, Ref{CodeObject}), program, isa, call_convention, control_directives, options, code_object_type, code_object)
+function ext_program_finalize(program::ExtProgram, isa::ISA, call_conventionInteger, control_directives::ExtControlDirectives, options, code_object_type::CodeObjectType, code_object::Ref{CodeObject})
+    ccall((:hsa_ext_program_finalize, "libhsa-runtime64"), Status, (ExtProgram, ISA, Int32, ExtControlDirectives, Cstring, CodeObjectType, Ref{CodeObject}), program, isa, call_convention, control_directives, options, code_object_type, code_object)
 end
 
 function ven_amd_aqlprofile_version_major()
@@ -971,32 +973,32 @@ function ven_amd_aqlprofile_version_minor()
     ccall((:hsa_ven_amd_aqlprofile_version_minor, "libhsa-runtime64"), UInt32, ())
 end
 
-function ven_amd_aqlprofile_validate_event(agent::Agent, event::Ref{hsa_ven_amd_aqlprofile_event_t}, result::Ref{Bool})
-    ccall((:hsa_ven_amd_aqlprofile_validate_event, "libhsa-runtime64"), Status, (Agent, Ref{hsa_ven_amd_aqlprofile_event_t}, Ref{Bool}), agent, event, result)
+function ven_amd_aqlprofile_validate_event(agent::Agent, event::Ref{AQLProfileEvent}, result::Ref{Bool})
+    ccall((:hsa_ven_amd_aqlprofile_validate_event, "libhsa-runtime64"), Status, (Agent, Ref{AQLProfileEvent}, Ref{Bool}), agent, event, result)
 end
 
-function ven_amd_aqlprofile_start(profile::Ref{hsa_ven_amd_aqlprofile_profile_t}, aql_start_packet::Ref{hsa_ext_amd_aql_pm4_packet_t})
-    ccall((:hsa_ven_amd_aqlprofile_start, "libhsa-runtime64"), Status, (Ref{hsa_ven_amd_aqlprofile_profile_t}, Ref{hsa_ext_amd_aql_pm4_packet_t}), profile, aql_start_packet)
+function ven_amd_aqlprofile_start(profile::Ref{AQLProfile}, aql_start_packet::Ref{AQLPm4Packet})
+    ccall((:hsa_ven_amd_aqlprofile_start, "libhsa-runtime64"), Status, (Ref{AQLProfile}, Ref{AQLPm4Packet}), profile, aql_start_packet)
 end
 
-function ven_amd_aqlprofile_stop(profile::Ref{hsa_ven_amd_aqlprofile_profile_t}, aql_stop_packet::Ref{hsa_ext_amd_aql_pm4_packet_t})
-    ccall((:hsa_ven_amd_aqlprofile_stop, "libhsa-runtime64"), Status, (Ref{hsa_ven_amd_aqlprofile_profile_t}, Ref{hsa_ext_amd_aql_pm4_packet_t}), profile, aql_stop_packet)
+function ven_amd_aqlprofile_stop(profile::Ref{AQLProfile}, aql_stop_packet::Ref{AQLPm4Packet})
+    ccall((:hsa_ven_amd_aqlprofile_stop, "libhsa-runtime64"), Status, (Ref{AQLProfile}, Ref{AQLPm4Packet}), profile, aql_stop_packet)
 end
 
-function ven_amd_aqlprofile_read(profile::Ref{hsa_ven_amd_aqlprofile_profile_t}, aql_read_packet::Ref{hsa_ext_amd_aql_pm4_packet_t})
-    ccall((:hsa_ven_amd_aqlprofile_read, "libhsa-runtime64"), Status, (Ref{hsa_ven_amd_aqlprofile_profile_t}, Ref{hsa_ext_amd_aql_pm4_packet_t}), profile, aql_read_packet)
+function ven_amd_aqlprofile_read(profile::Ref{AQLProfile}, aql_read_packet::Ref{AQLPm4Packet})
+    ccall((:hsa_ven_amd_aqlprofile_read, "libhsa-runtime64"), Status, (Ref{AQLProfile}, Ref{AQLPm4Packet}), profile, aql_read_packet)
 end
 
-function ven_amd_aqlprofile_legacy_get_pm4(aql_packet::Ref{hsa_ext_amd_aql_pm4_packet_t}, data::Ref{Cvoid})
-    ccall((:hsa_ven_amd_aqlprofile_legacy_get_pm4, "libhsa-runtime64"), Status, (Ref{hsa_ext_amd_aql_pm4_packet_t}, Ref{Cvoid}), aql_packet, data)
+function ven_amd_aqlprofile_legacy_get_pm4(aql_packet::Ref{AQLPm4Packet}, data::Ref{Cvoid})
+    ccall((:hsa_ven_amd_aqlprofile_legacy_get_pm4, "libhsa-runtime64"), Status, (Ref{AQLPm4Packet}, Ref{Cvoid}), aql_packet, data)
 end
 
-function ven_amd_aqlprofile_get_info(profile::Ref{hsa_ven_amd_aqlprofile_profile_t}, attribute::hsa_ven_amd_aqlprofile_info_type_t, value::Ref{Cvoid})
-    ccall((:hsa_ven_amd_aqlprofile_get_info, "libhsa-runtime64"), Status, (Ref{hsa_ven_amd_aqlprofile_profile_t}, hsa_ven_amd_aqlprofile_info_type_t, Ref{Cvoid}), profile, attribute, value)
+function ven_amd_aqlprofile_get_info(profile::Ref{AQLProfile}, attribute::AQLProfileInfoType, value::Ref{Cvoid})
+    ccall((:hsa_ven_amd_aqlprofile_get_info, "libhsa-runtime64"), Status, (Ref{AQLProfile}, AQLProfileInfoType, Ref{Cvoid}), profile, attribute, value)
 end
 
-function ven_amd_aqlprofile_iterate_data(profile::Ref{hsa_ven_amd_aqlprofile_profile_t}, callback::hsa_ven_amd_aqlprofile_data_callback_t, data::Ref{Cvoid})
-    ccall((:hsa_ven_amd_aqlprofile_iterate_data, "libhsa-runtime64"), Status, (Ref{hsa_ven_amd_aqlprofile_profile_t}, hsa_ven_amd_aqlprofile_data_callback_t, Ref{Cvoid}), profile, callback, data)
+function ven_amd_aqlprofile_iterate_data(profile::Ref{AQLProfile}, callback::AQLProfileDataCallback, data::Ref{Cvoid})
+    ccall((:hsa_ven_amd_aqlprofile_iterate_data, "libhsa-runtime64"), Status, (Ref{AQLProfile}, AQLProfileDataCallback, Ref{Cvoid}), profile, callback, data)
 end
 
 function ven_amd_aqlprofile_error_string(str::Ref{Cstring})
@@ -1007,8 +1009,8 @@ function ven_amd_loader_query_host_address(device_address::Ref{Cvoid}, host_addr
     ccall((:hsa_ven_amd_loader_query_host_address, "libhsa-runtime64"), Status, (Ref{Cvoid}, Ref{Ref{Cvoid}}), device_address, host_address)
 end
 
-function ven_amd_loader_query_segment_descriptors(segment_descriptors::Ref{hsa_ven_amd_loader_segment_descriptor_t}, num_segment_descriptors::Ref{Csize_t})
-    ccall((:hsa_ven_amd_loader_query_segment_descriptors, "libhsa-runtime64"), Status, (Ref{hsa_ven_amd_loader_segment_descriptor_t}, Ref{Csize_t}), segment_descriptors, num_segment_descriptors)
+function ven_amd_loader_query_segment_descriptors(segment_descriptors::Ref{SegmentDescriptor}, num_segment_descriptors::Ref{Csize_t})
+    ccall((:hsa_ven_amd_loader_query_segment_descriptors, "libhsa-runtime64"), Status, (Ref{SegmentDescriptor}, Ref{Csize_t}), segment_descriptors, num_segment_descriptors)
 end
 
 function ven_amd_loader_query_executable(device_address::Ref{Cvoid}, executable::Ref{Executable})
