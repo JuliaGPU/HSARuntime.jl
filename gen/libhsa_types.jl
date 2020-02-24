@@ -5,13 +5,16 @@ const RuntimeQueueNotifier = Ref{Nothing}
 const SignalHandler = Ref{Nothing}
 const DeallocationCallback = Ref{Nothing}
 const AQLProfileDataCallback = Ref{Nothing}
+const SystemEventCallback = Ref{Nothing}
 const ToolsEvent = UInt64
 const SignalValue = Int64
 const MachineVersion = UInt16
+const File = Cint
+const ExtModule = Ref{Nothing}
 
 # Composite types
 
-struct SamplerDescriptor
+struct AMDGPUSamplerDescriptor
     size::UInt16
     kind::MetadataKind
     coord::SamplerCoord
@@ -187,7 +190,7 @@ struct CodeSymbol
 end
 
 struct AMDControlDirectives
-    enabled_control_directives::AMDEnabledControlDirective
+    enabled_control_directives::EnabledControlDirective
     enable_break_exceptions::UInt16
     enable_detect_exceptions::UInt16
     max_dynamic_group_size::UInt32
@@ -201,19 +204,19 @@ struct AMDControlDirectives
 end
 
 struct AMDKernelCode
-    AMD_kernel_code_version_major::AMDKernelCodeVersion
-    AMD_kernel_code_version_minor::AMDKernelCodeVersion
-    AMD_machine_kind::AMDMachineKind
-    AMD_machine_version_major::AMDMachineVersion
-    AMD_machine_version_minor::AMDVachineVersion
-    AMD_machine_version_stepping::AMDMachineVersion16
+    AMD_kernel_code_version_major::KernelCodeVersion
+    AMD_kernel_code_version_minor::KernelCodeVersion
+    AMD_machine_kind::MachineKind
+    AMD_machine_version_major::MachineVersion
+    AMD_machine_version_minor::MachineVersion
+    AMD_machine_version_stepping::MachineVersion
     kernel_code_entry_byte_offset::Int64
     kernel_code_prefetch_byte_offset::Int64
     kernel_code_prefetch_byte_size::UInt64
     max_scratch_backing_memory_byte_size::UInt64
-    compute_pgm_rsrc1::AMDComputePgmRsrcOne
-    compute_pgm_rsrc2::AMDComputePgmRsrcTwo
-    kernel_code_properties::AMDKernelCodeProperties
+    compute_pgm_rsrc1::ComputePgmRsrcOne
+    compute_pgm_rsrc2::ComputePgmRsrcTwo
+    kernel_code_properties::KernelCodeProperties
     workitem_private_segment_byte_size::UInt32
     workgroup_group_segment_byte_size::UInt32
     gds_segment_byte_size::UInt32
@@ -227,17 +230,17 @@ struct AMDKernelCode
     reserved_sgpr_count::UInt16
     debug_wavefront_private_segment_offset_sgpr::UInt16
     debug_private_segment_buffer_sgpr::UInt16
-    kernarg_segment_alignment::AMDPowerTwo
-    group_segment_alignment::AMDPowerTwo
-    private_segment_alignment::AMDPowerTwo
-    wavefront_size::AMDPowerTwo
+    kernarg_segment_alignment::PowerTwo
+    group_segment_alignment::PowerTwo
+    private_segment_alignment::PowerTwo
+    wavefront_size::PowerTwo
     call_convention::Int32
     reserved1::NTuple{12, UInt8}
     runtime_loader_kernel_symbol::UInt64
     control_directives::AMDControlDirectives
 end
 
-struct AMDRuntimeLoaderDebugInfo
+struct RuntimeLoaderDebugInfo
     elf_raw::Ref{Nothing}
     elf_size::UInt64
     kernel_name::Cstring
@@ -285,6 +288,7 @@ struct APITableVersion
     reserved::UInt32
 end
 
+#=
 struct HSAAPITable
     version::APITableVersion
     core::Ref{CoreAPITable}
@@ -292,7 +296,7 @@ struct HSAAPITable
     finalizer_ext::Ref{FinalizerExtTable}
     image_ext::Ref{ImageExtTable}
 end
-
+=#
 struct Image
     handle::UInt64
 end
@@ -326,7 +330,7 @@ struct Sampler
     handle::UInt64
 end
 
-struct SamplerDescriptor
+struct ExtSamplerDescriptor
     coordinate_mode::SamplerCoordinateMode
     filter_mode::SamplerFilterMode
     address_mode::SamplerAddressingMode
@@ -366,17 +370,17 @@ struct AMDHDPFlush
     HDP_REG_FLUSH_CNTL::Ref{UInt32}
 end
 
-struct AMDProfilingDispatchTime
+struct ProfilingDispatchTime
     start::UInt64
     _end::UInt64
 end
 
-struct AMDProfilingAsyncCopyTime
+struct ProfilingAsyncCopyTime
     start::UInt64
     _end::UInt64
 end
 
-struct AMDMemoryPool
+struct MemoryPool
     handle::UInt64
 end
 
@@ -386,7 +390,7 @@ struct PitchedPtr
     slice::UInt64
 end
 
-struct AMDMemoryPoolLinkInfo
+struct MemoryPoolLinkInfo
     min_latency::UInt32
     max_latency::UInt32
     min_bandwidth::UInt32
@@ -394,7 +398,7 @@ struct AMDMemoryPoolLinkInfo
     atomic_support_32bit::Bool
     atomic_support_64bit::Bool
     coherent_support::Bool
-    link_type::AMDLinkInfoType
+    link_type::LinkInfoType
     numa_distance::UInt32
 end
 
@@ -404,9 +408,9 @@ struct AMDImageDescriptor
     data::NTuple{1, UInt32}
 end
 
-struct AMDPointerInfo
+struct PointerInfo
     size::UInt32
-    type::AMDPointerType
+    type::PointerType
     agentBaseAddress::Ref{Nothing}
     hostBaseAddress::Ref{Nothing}
     sizeInBytes::UInt64
@@ -414,21 +418,23 @@ struct AMDPointerInfo
     agentOwner::Agent
 end
 
-struct AMDIPCMemory
+struct IPCMemory
     handle::NTuple{8, UInt32}
 end
 
-struct AMDGpuMemoryFaultInfo
+const IPCSignal = IPCMemory
+
+struct GpuMemoryFaultInfo
     agent::Agent
     virtual_address::UInt64
     fault_reason_mask::UInt32
 end
 
-struct AMDEvent
+struct Event
     event_type::AMDEventType
 end
 
-struct ExceptionPolicy
+struct ExtToolsExceptionPolicy
     exception_mask::UInt32
     wave_action::WaveAction
     host_action::HostAction
