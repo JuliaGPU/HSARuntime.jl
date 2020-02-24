@@ -20,7 +20,7 @@ end
    SYMBOL_FLAG_LAST = 2
 end
 
-@cenum MetadataKind::UInt32 begin
+@cenum MetadataKind::UInt16 begin
    METADATA_KIND_NONE = 0
    METADATA_KIND_INIT_SAMP = 1
    METADATA_KIND_INIT_ROIMG = 2
@@ -28,17 +28,17 @@ end
    METADATA_KIND_INIT_RWIMG = 4
 end
 
-@cenum SamplerCoord::UInt32 begin
+@cenum SamplerCoord::UInt8 begin
    SAMPLER_COORD_UNNORMALIZED = 0
    SAMPLER_COORD_NORMALIZED = 1
 end
 
-@cenum SamplerFilter::UInt32 begin
+@cenum SamplerFilter::UInt8 begin
    SAMPLER_FILTER_NEAREST = 0
    SAMPLER_FILTER_LINEAR = 1
 end
 
-@cenum SamplerAddressing::UInt32 begin
+@cenum SamplerAddressing::UInt8 begin
    SAMPLER_ADDRESSING_UNDEFINED = 0
    SAMPLER_ADDRESSING_CLAMP_TO_EDGE = 1
    SAMPLER_ADDRESSING_CLAMP_TO_BORDER = 2

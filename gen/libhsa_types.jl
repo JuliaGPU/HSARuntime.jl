@@ -1,4 +1,4 @@
-# Pointer aliases
+# Pointer/type aliases
 const QueueInterceptPacketWriter = Ref{Nothing}
 const QueueInterceptHandler = Ref{Nothing}
 const RuntimeQueueNotifier = Ref{Nothing}
@@ -7,6 +7,7 @@ const DeallocationCallback = Ref{Nothing}
 const AQLProfileDataCallback = Ref{Nothing}
 const ToolsEvent = UInt64
 const SignalValue = Int64
+const MachineVersion = UInt16
 
 # Composite types
 
