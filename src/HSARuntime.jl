@@ -13,7 +13,7 @@ if !configured
 end
 
 atexit() do
-    configured && hsa_shut_down()
+    configured && HSA.shut_down()
 end
 
 ### Imports ###
@@ -30,16 +30,14 @@ export get_default_agent, get_default_queue
 
 ### HSA Runtime Wrapper ###
 
-include(joinpath(@__DIR__, "..", "deps", "hsa_types.jl"))
-include(joinpath(@__DIR__, "..", "deps", "hsa_interface.jl"))
-include(joinpath(@__DIR__, "..", "deps", "hsa_extras.jl"))
+include(joinpath(@__DIR__, "HSA", "HSA.jl"))
 
 ### HSA Errors ###
 
 export HSAError
 
 struct HSAError <: Exception
-    code::hsa_status_t
+    code::Status
 end
 
 """
@@ -60,31 +58,27 @@ end
 Base.show(io::IO, err::HSAError) = print(io, "HSAError($(Int(err.code)), $(description(err)))")
 
 function check(result)
-    if result != HSA_STATUS_SUCCESS
-        throw(HSAError(result))
+    if result != HSA.STATUS_SUCCESS
+        throw(HSA.Error(result))
     end
 end
 
 ### Types ###
 
-mutable struct HSAAgent
-    agent::hsa_agent_t
-end
-
 mutable struct HSAQueue
-    agent::HSAAgent
-    queue::Ref{Ptr{hsa_queue_t}}
+    agent::HSA.Agent
+    queue::Ref{Ptr{Queue}}
 end
 
 mutable struct HSAExecutable
-    agent::HSAAgent
-    executable::Ref{hsa_executable_t}
-    code_object::Ref{hsa_code_object_t}
+    agent::HSA.Agent
+    executable::Ref{HSA.Executable}
+    code_object::Ref{HSA.CodeObject}
     data::Vector{UInt8}
 end
 
 mutable struct HSAKernelInstance{T<:Tuple}
-    agent::HSAAgent
+    agent::HSA.Agent
     exe::HSAExecutable
     sym::String
     args::T
@@ -107,8 +101,8 @@ end
 
 ### Constants ###
 
-const DEFAULT_AGENT = Ref{HSAAgent}()
-const DEFAULT_QUEUES = IdDict{HSAAgent,HSAQueue}()
+const DEFAULT_AGENT = Ref{HSA.Agent}()
+const DEFAULT_QUEUES = IdDict{HSA.Agent,HSAQueue}()
 
 ### @cfunction Callbacks ###
 
