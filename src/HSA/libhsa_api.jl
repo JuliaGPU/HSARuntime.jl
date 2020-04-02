@@ -35,12 +35,13 @@ function system_get_major_extension_table(extension::UInt16, version_major::UInt
     ccall((:hsa_system_get_major_extension_table, "libhsa-runtime64"), Status, (UInt16, UInt16, Csize_t, Ref{Cvoid}), extension, version_major, table_length, table)
 end
 
-function agent_get_info(agent::Agent, attribute::AgentInfo, value::Ref{Cvoid})
-    ccall((:hsa_agent_get_info, "libhsa-runtime64"), Status, (Agent, AgentInfo, Ref{Cvoid}), agent, attribute, value)
+function agent_get_info(agent::Agent, attribute::AgentInfo, value::Union{Ref, Base.RefValue})
+    ccall((:hsa_agent_get_info, "libhsa-runtime64"), Status, (Agent, AgentInfo, Ptr{Cvoid}), agent, attribute, value)
 end
 
-function iterate_agents(callback::Ref{Cvoid}, data::Ref{Cvoid})
-    ccall((:hsa_iterate_agents, "libhsa-runtime64"), Status, (Ref{Cvoid}, Ref{Cvoid}), callback, data)
+#function iterate_agents(callback::Ref{Cvoid}, data::Ref{Cvoid})
+function iterate_agents(callback, data)
+    ccall((:hsa_iterate_agents, "libhsa-runtime64"), Status, (Ptr{Cvoid}, Ptr{Cvoid}), callback, data)
 end
 
 function agent_get_exception_policies(agent::Agent, profile::Profile, mask::Ref{UInt16})

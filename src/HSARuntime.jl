@@ -31,7 +31,7 @@ export get_default_agent, get_default_queue
 ### HSA Runtime Wrapper ###
 
 include(joinpath(@__DIR__, "HSA", "HSA.jl"))
-import .HSA: Agent, Queue, Executable, Status 
+import .HSA: Agent, Queue, Executable, Status, Signal 
 ### HSA Errors ###
 
 export HSAError
@@ -623,7 +623,7 @@ function __init__()
     push!(Libdl.DL_LOAD_PATH, dirname(libhsaruntime_path))
     # TODO: Do the same (if possible) for the debug library
 
-    hsa_init() |> check
+    HSA.init() |> check
 
     agents = get_agents(:gpu)
     if length(agents) > 0
