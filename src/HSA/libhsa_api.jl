@@ -35,11 +35,12 @@ function system_get_major_extension_table(extension::UInt16, version_major::UInt
     ccall((:hsa_system_get_major_extension_table, "libhsa-runtime64"), Status, (UInt16, UInt16, Csize_t, Ref{Cvoid}), extension, version_major, table_length, table)
 end
 
-function agent_get_info(agent::Agent, attribute::AgentInfo, value::Union{Ref, Base.RefValue})
+#TODO: perhaps comment out? duplicates wrappers in hsa_ext.jl
+function agent_get_info(agent::Agent, attribute::AgentInfo, value) # ::Union{Ref, Base.RefValue})
     ccall((:hsa_agent_get_info, "libhsa-runtime64"), Status, (Agent, AgentInfo, Ptr{Cvoid}), agent, attribute, value)
 end
 
-#function iterate_agents(callback::Ref{Cvoid}, data::Ref{Cvoid})
+#TODO: function iterate_agents(callback::Ref{Cvoid}, data::Ref{Cvoid})
 function iterate_agents(callback, data)
     ccall((:hsa_iterate_agents, "libhsa-runtime64"), Status, (Ptr{Cvoid}, Ptr{Cvoid}), callback, data)
 end
@@ -448,12 +449,12 @@ function queue_store_read_index_screlease(queue::Ref{Queue}, value::Integer)
     ccall((:hsa_queue_store_read_index_screlease, "libhsa-runtime64"), Cvoid, (Ref{Queue}, UInt64), queue, value)
 end
 
-function region_get_info(region::Region, attribute::RegionInfo, value::Ref{Cvoid})
-    ccall((:hsa_region_get_info, "libhsa-runtime64"), Status, (Region, RegionInfo, Ref{Cvoid}), region, attribute, value)
+function region_get_info(region::Region, attribute::RegionInfo, value::Ref{T}) where T
+    ccall((:hsa_region_get_info, "libhsa-runtime64"), Status, (Region, RegionInfo, Ref{T}), region, attribute, value)
 end
 
-function agent_iterate_regions(agent::Agent, callback::Ref{Cvoid}, data::Ref{Cvoid})
-    ccall((:hsa_agent_iterate_regions, "libhsa-runtime64"), Status, (Agent, Ref{Cvoid}, Ref{Cvoid}), agent, callback, data)
+function agent_iterate_regions(agent::Agent, callback::Ref{Cvoid}, data::Ref{T}) where T
+    ccall((:hsa_agent_iterate_regions, "libhsa-runtime64"), Status, (Agent, Ref{Cvoid}, Ref{T}), agent, callback, data)
 end
 
 function memory_allocate(region::Region, size::Integer, ptr::Ref{Ref{Cvoid}})
@@ -484,16 +485,16 @@ function isa_from_name(name, isa::Ref{ISA})
     ccall((:hsa_isa_from_name, "libhsa-runtime64"), Status, (Cstring, Ref{ISA}), name, isa)
 end
 
-function agent_iterate_isas(agent::Agent, callback::Ref{Cvoid}, data::Ref{Cvoid})
-    ccall((:hsa_agent_iterate_isas, "libhsa-runtime64"), Status, (Agent, Ref{Cvoid}, Ref{Cvoid}), agent, callback, data)
+function agent_iterate_isas(agent::Agent, callback::Ref{Cvoid}, data::Ref{ISA})
+    ccall((:hsa_agent_iterate_isas, "libhsa-runtime64"), Status, (Agent, Ptr{Cvoid}, Ptr{Cvoid}), agent, callback, data)
 end
 
 function isa_get_info(isa::ISA, attribute::ISAInfo, index::Integer, value::Ref{Cvoid})
     ccall((:hsa_isa_get_info, "libhsa-runtime64"), Status, (ISA, ISAInfo, UInt32, Ref{Cvoid}), isa, attribute, index, value)
 end
-
-function isa_get_info_alt(isa::ISA, attribute::ISAInfo, value::Ref{Cvoid})
-    ccall((:hsa_isa_get_info_alt, "libhsa-runtime64"), Status, (ISA, ISAInfo, Ref{Cvoid}), isa, attribute, value)
+#TODO: perhaps comment out? replaced by wrappers in hsa_extras.jl
+function isa_get_info_alt(isa::ISA, attribute::ISAInfo, value)
+    ccall((:hsa_isa_get_info_alt, "libhsa-runtime64"), Status, (ISA, ISAInfo, Ptr{Cvoid}), isa, attribute, value)
 end
 
 function isa_get_exception_policies(isa::ISA, profile::Profile, mask::Ref{UInt16})

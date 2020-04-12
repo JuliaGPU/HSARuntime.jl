@@ -27,6 +27,11 @@ function getinfo(agent::Agent, attribute::AgentInfo, value::String)
           (Agent, AgentInfo, Cstring), agent, attribute, value)
 end
 
+function getinfo(agent::Agent, attribute::AgentInfo, value::Vector{T}) where T
+    ccall((:hsa_agent_get_info, "libhsa-runtime64"), Status,
+          (Agent, AgentInfo, Ref{T}), agent, attribute, value)
+end
+
 function getinfo(agent::Agent, attribute::AgentInfo, value::Ref{T}) where T
     ccall((:hsa_agent_get_info, "libhsa-runtime64"), Status,
           (Agent, AgentInfo, Ref{T}), agent, attribute, value)
@@ -45,6 +50,11 @@ end
 function getinfo(exsym::ExecutableSymbol, attribute::ExecutableSymbolInfo, value::String)
     ccall((:hsa_executable_symbol_get_info, "libhsa-runtime64"), Status,
           (ExecutableSymbol, ExecutableSymbolInfo, Cstring), exsym, attribute, value)
+end
+
+function getinfo(exsym::ExecutableSymbol, attribute::ExecutableSymbolInfo, value::Ref{T}) where T
+    ccall((:hsa_executable_symbol_get_info, "libhsa-runtime64"), Status,
+          (ExecutableSymbol, ExecutableSymbolInfo, Ref{T}), exsym, attribute, value)
 end
 
 function memory_allocate(region::Region, size::Integer, ref::Ref{Ptr{T}}) where T

@@ -31,7 +31,8 @@ export get_default_agent, get_default_queue
 ### HSA Runtime Wrapper ###
 
 include(joinpath(@__DIR__, "HSA", "HSA.jl"))
-import .HSA: Agent, Queue, Executable, Status, Signal 
+import .HSA: Agent, Queue, Executable, Status, Signal, getinfo, newref!
+export newref!
 ### HSA Errors ###
 
 export HSAError
@@ -144,7 +145,7 @@ function finalizer_iterate_isas_cb(isa::HSA.ISA, data)
     @info "Finalizer ISAs:"
 
     name = repeat(" ", 64)
-    HSA.isa_get_info_alt(isa, HSA.ISA_INFO_NAME, name) |> check
+    getinfo(isa, HSA.ISA_INFO_NAME, name) |> check
     @info "    ISA Name: $name"
 
     return HSA.STATUS_SUCCESS
@@ -192,20 +193,14 @@ function iterate_exec_agent_syms_cb(exe::HSA.Executable, agent::HSA.Agent,
 
     sym_ref = Base.unsafe_convert(Ptr{HSA.ExecutableSymbol}, sym_ref)
     sym_type = Ref{SymbolKind}()
-    HSA.executable_symbol_get_info(sym, HSA.EXECUTABLE_SYMBOL_INFO_TYPE,
+    getinfo(sym, HSA.EXECUTABLE_SYMBOL_INFO_TYPE,
                                    sym_type) |> check
 
     if sym_type[] == HSA.SYMBOL_KIND_KERNEL
         len = Ref(0)
-        HSA.executable_symbol_get_info(sym,
-                                       HSA.EXECUTABLE_SYMBOL_INFO_NAME_LENGTH,
-                                       len) |> check
-
+        getinfo(sym, HSA.EXECUTABLE_SYMBOL_INFO_NAME_LENGTH, len) |> check
         name = Vector{UInt8}(undef, len[])
-        HSA.executable_symbol_get_info(sym,
-                                       HSA.EXECUTABLE_SYMBOL_INFO_NAME,
-                                       name) |> check
-
+        getinfo(sym, HSA.EXECUTABLE_SYMBOL_INFO_NAME, name) |> check
         @debug "    Symbol Name: $(String(name))"
         Base.unsafe_store!(sym_ref, sym)
     end
@@ -214,19 +209,13 @@ function iterate_exec_agent_syms_cb(exe::HSA.Executable, agent::HSA.Agent,
 end
 function iterate_exec_prog_syms_cb(exe::HSA.Executable, sym::HSA.ExecutableSymbol, data)
     sym_type = Ref{SymbolKind}()
-    HSA.executable_symbol_get_info(sym,
-                                   HSA.EXECUTABLE_SYMBOL_INFO_TYPE,
-                                   sym_type) |> check
+    getinfo(sym, HSA.EXECUTABLE_SYMBOL_INFO_TYPE, sym_type) |> check
 
     #if sym_type[] == HSA.SYMBOL_KIND_KERNEL
         len = Ref(0)
-        HSA.executable_symbol_get_info(sym,
-                                       HSA.EXECUTABLE_SYMBOL_INFO_NAME_LENGTH,
-                                       len) |> check
+        getinfo(sym, HSA.EXECUTABLE_SYMBOL_INFO_NAME_LENGTH, len) |> check
         name = Vector{UInt8}(undef, len[])
-        HSA.executable_symbol_get_info(sym,
-                                       HSA.EXECUTABLE_SYMBOL_INFO_NAME,
-                                       name) |> check
+        getinfo(sym, HSA.EXECUTABLE_SYMBOL_INFO_NAME, name) |> check
         @debug "   Symbol Name: $(String(name))"
     #end
     return HSA.STATUS_SUCCESS
@@ -236,9 +225,7 @@ end
 
 function HSAQueue(agent::HSAAgent)
     queue_size = Ref{UInt32}(0)
-    HSA.agent_get_info(agent.agent,
-                       HSA.AGENT_INFO_QUEUE_MAX_SIZE,
-                       queue_size) |> check
+    getinfo(agent.agent, HSA.AGENT_INFO_QUEUE_MAX_SIZE, queue_size) |> check
     @assert queue_size[] > 0
     queue = HSAQueue(agent, Ref{Ptr{HSA.Queue}}())
     HSA.queue_create(agent.agent, queue_size[], HSA.QUEUE_TYPE_SINGLE,
@@ -248,7 +235,6 @@ function HSAQueue(agent::HSAAgent)
     finalizer(queue) do queue
         HSA.queue_destroy(queue.queue[]) |> check
     end
-
     return queue
 end
 
@@ -314,28 +300,25 @@ function HSAKernelInstance(agent::HSAAgent, exe::HSAExecutable, symbol::String, 
     end
 
     kernel_object = Ref{UInt64}(0)
-    HSA.executable_symbol_get_info(exec_symbol[],
-                                   HSA.EXECUTABLE_SYMBOL_INFO_KERNEL_OBJECT,
-                                   kernel_object) |> check
-
+    getinfo(exec_symbol[], HSA.EXECUTABLE_SYMBOL_INFO_KERNEL_OBJECT,
+            kernel_object) |> check
+    
     kernarg_segment_size = Ref{UInt32}(0)
-    HSA.executable_symbol_get_info(exec_symbol[],
-                                   HSA.EXECUTABLE_SYMBOL_INFO_KERNEL_KERNARG_SEGMENT_SIZE,
-                                   kernarg_segment_size) |> check
+    getinfo(exec_symbol[], HSA.EXECUTABLE_SYMBOL_INFO_KERNEL_KERNARG_SEGMENT_SIZE,
+            kernarg_segment_size) |> check
+    
     if kernarg_segment_size[] == 0
         # FIXME: Hidden arguments!
         kernarg_segment_size[] = sum(sizeof.(args))
     end
 
     group_segment_size = Ref{UInt32}(0)
-    HSA.executable_symbol_get_info(exec_symbol[],
-                                   HSA.EXECUTABLE_SYMBOL_INFO_KERNEL_GROUP_SEGMENT_SIZE,
-                                   group_segment_size) |> check
+    getinfo(exec_symbol[], HSA.EXECUTABLE_SYMBOL_INFO_KERNEL_GROUP_SEGMENT_SIZE,
+            group_segment_size) |> check
 
     private_segment_size = Ref{UInt32}(0)
-    HSA.executable_symbol_get_info(exec_symbol[],
-                                   HSA.EXECUTABLE_SYMBOL_INFO_KERNEL_PRIVATE_SEGMENT_SIZE,
-                                   private_segment_size) |> check
+    getinfo(exec_symbol[], HSA.EXECUTABLE_SYMBOL_INFO_KERNEL_PRIVATE_SEGMENT_SIZE,
+            private_segment_size) |> check
 
     finegrained_region = HSA.get_region(agent, :finegrained)
     kernarg_region = HSA.get_region(agent, :kernarg)
@@ -472,19 +455,20 @@ get_default_queue() = get_default_queue(get_default_agent())
 function get_name(agent::HSAAgent)
     #len = Ref(0)
     #hsa_agent_get_info(agent.agent, HSA.AGENT_INFO_NAME_LENGTH, len) |> check
+    #FIXME: this is not a good way of doing it
     name = Vector{UInt8}(undef, 64)
-    HSA.agent_get_info(agent.agent, HSA.AGENT_INFO_NAME, name) |> check
+    getinfo(agent.agent, HSA.AGENT_INFO_NAME, name) |> check
     return rstrip(String(name), '\0')
 end
 function profile(agent::HSAAgent)
     profile = Ref{HSA.Profile}()
-    HSA.agent_get_info(agent.agent, HSA.AGENT_INFO_PROFILE, profile) |> check
+    getinfo(agent.agent, HSA.AGENT_INFO_PROFILE, profile) |> check
     return profile[]
 end
 
 function device_type(agent::HSAAgent)
     devtype = Ref{UInt32}()
-    HSA.agent_get_info(agent.agent, HSA.AGENT_INFO_DEVICE, devtype) |> check
+    getinfo(agent.agent, HSA.AGENT_INFO_DEVICE, devtype) |> check
     
     if HSA.DeviceType(devtype[]) == HSA.DEVICE_TYPE_CPU
         return :cpu
@@ -505,9 +489,9 @@ function get_first_isa(agent::HSAAgent)
     @assert ret == HSA.STATUS_INFO_BREAK "Failed to find an agent ISA"
 
     len = Ref{Cuint}(0)
-    HSA.isa_get_info_alt(isa[], HSA.ISA_INFO_NAME_LENGTH, len) |> check
+    getinfo(isa[], HSA.ISA_INFO_NAME_LENGTH, len) |> check
     name = repeat(" ", len[])
-    HSA.isa_get_info_alt(isa[], HSA.ISA_INFO_NAME, name) |> check
+    getinfo(isa[], HSA.ISA_INFO_NAME, name) |> check
     isa_name = string(rstrip(last(split(name, "-")), '\0'))
     return isa_name
 end
