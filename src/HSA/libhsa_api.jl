@@ -463,12 +463,12 @@ function agent_iterate_regions(agent::Agent, callback::Ref{Cvoid}, data::Ref{T})
     ccall((:hsa_agent_iterate_regions, "libhsa-runtime64"), Status, (Agent, Ref{Cvoid}, Ref{T}), agent, callback, data)
 end
 
-function memory_allocate(region::Region, size::Integer, ptr::Ref{Ref{Cvoid}})
-    ccall((:hsa_memory_allocate, "libhsa-runtime64"), Status, (Region, Csize_t, Ref{Ref{Cvoid}}), region, size, ptr)
+function memory_allocate(region::Region, size::Integer, ptr::Ref{Ptr{T}}) where T
+    ccall((:hsa_memory_allocate, "libhsa-runtime64"), Status, (Region, Csize_t, Ref{Ptr{T}}), region, size, ptr)
 end
 
-function memory_free(ptr::Ref{Cvoid})
-    ccall((:hsa_memory_free, "libhsa-runtime64"), Status, (Ref{Cvoid},), ptr)
+function memory_free(ptr::Ptr{T}) where T
+    ccall((:hsa_memory_free, "libhsa-runtime64"), Status, (Ptr{T},), ptr)
 end
 
 function memory_copy(dst::Ref{Cvoid}, src::Ref{Cvoid}, size::Integer)

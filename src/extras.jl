@@ -1,6 +1,6 @@
 # Extra stuff
 
-newref!(::Type{Ref{Region}}, value) = Ref{Region}(Region(value))
+newref!(::Type{Ref{HSA.Region}}, value) = Ref{HSA.Region}(HSA.Region(value))
 
 # Memory
 memset!(ref::Ref{T}, value::T) where T<:Integer = _memset!(ref, value, T)
@@ -22,29 +22,29 @@ end
     
 # Overloads for interface functions
 
-function getinfo(agent::Agent, attribute::AgentInfo,
+function getinfo(agent::Agent, attribute::HSA.AgentInfo,
                  value::Union{Vector,Base.RefValue,String})
     #TODO: maybe do allocation/create Refs here 
     # based on value of AgentInfo
     # therefore we can omit value argument in getinfo() calls
-    agent_get_info(agent, attribute, value)
+    HSA.agent_get_info(agent, attribute, value)
 end
 
-function getinfo(isa::ISA, attribute::ISAInfo,
+function getinfo(isa::HSA.ISA, attribute::HSA.ISAInfo,
                  value::Union{Vector,Base.RefValue,String})
     # should allocate based on ISAInfo
-    isa_get_info_alt(isa, attribute, value)
+    HSA.isa_get_info_alt(isa, attribute, value)
 end
 
-function getinfo(exsym::ExecutableSymbol, attribute::ExecutableSymbolInfo,
+function getinfo(exsym::HSA.ExecutableSymbol, attribute::HSA.ExecutableSymbolInfo,
                  value::Union{Vector,Base.RefValue,String})
     # should allocated based on ExecutableSymbolInfo
-    executable_symbol_get_info(exsym, attribute, value)
+    HSA.executable_symbol_get_info(exsym, attribute, value)
 end
 
-function memory_allocate(region::Region, size::Integer, ref::Ref{Ptr{T}}) where T
+function memory_allocate(region::HSA.Region, size::Integer, ref::Ref{Ptr{T}}) where T
     ccall((:hsa_memory_allocate, "libhsa-runtime64"), Status,
-          (Region, Csize_t, Ref{Ptr{T}}), region, size, ref)
+          (HSA.Region, Csize_t, Ref{Ptr{T}}), region, size, ref)
 end
 
 #= FIXME ???

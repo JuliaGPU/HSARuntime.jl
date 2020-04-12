@@ -31,8 +31,8 @@ export get_default_agent, get_default_queue
 ### HSA Runtime Wrapper ###
 
 include(joinpath(@__DIR__, "HSA", "HSA.jl"))
-import .HSA: Agent, Queue, Executable, Status, Signal, getinfo, newref!
-export newref!
+import .HSA: Agent, Queue, Executable, Status, Signal
+include("extras.jl")
 ### HSA Errors ###
 
 export HSAError
