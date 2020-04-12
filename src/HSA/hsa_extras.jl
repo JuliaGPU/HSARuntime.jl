@@ -22,39 +22,24 @@ end
     
 # Overloads for interface functions
 
-function getinfo(agent::Agent, attribute::AgentInfo, value::String)
-    ccall((:hsa_agent_get_info, "libhsa-runtime64"), Status,
-          (Agent, AgentInfo, Cstring), agent, attribute, value)
+function getinfo(agent::Agent, attribute::AgentInfo,
+                 value::Union{Vector,Base.RefValue,String})
+    #TODO: maybe do allocation/create Refs here 
+    # based on value of AgentInfo
+    # therefore we can omit value argument in getinfo() calls
+    agent_get_info(agent, attribute, value)
 end
 
-function getinfo(agent::Agent, attribute::AgentInfo, value::Vector{T}) where T
-    ccall((:hsa_agent_get_info, "libhsa-runtime64"), Status,
-          (Agent, AgentInfo, Ref{T}), agent, attribute, value)
+function getinfo(isa::ISA, attribute::ISAInfo,
+                 value::Union{Vector,Base.RefValue,String})
+    # should allocate based on ISAInfo
+    isa_get_info_alt(isa, attribute, value)
 end
 
-function getinfo(agent::Agent, attribute::AgentInfo, value::Ref{T}) where T
-    ccall((:hsa_agent_get_info, "libhsa-runtime64"), Status,
-          (Agent, AgentInfo, Ref{T}), agent, attribute, value)
-end
-
-function getinfo(isa::ISA, attribute::ISAInfo, value::Ref{T}) where T
-    ccall((:hsa_isa_get_info_alt, "libhsa-runtime64"), Status,
-          (ISA, ISAInfo, Ref{T}), isa, attribute, value)
-end
-
-function getinfo(isa::ISA, attribute::ISAInfo, value::String)
-    ccall((:hsa_isa_get_info_alt, "libhsa-runtime64"), Status,
-          (ISA, ISAInfo, Cstring), isa, attribute, value)
-end
-
-function getinfo(exsym::ExecutableSymbol, attribute::ExecutableSymbolInfo, value::String)
-    ccall((:hsa_executable_symbol_get_info, "libhsa-runtime64"), Status,
-          (ExecutableSymbol, ExecutableSymbolInfo, Cstring), exsym, attribute, value)
-end
-
-function getinfo(exsym::ExecutableSymbol, attribute::ExecutableSymbolInfo, value::Ref{T}) where T
-    ccall((:hsa_executable_symbol_get_info, "libhsa-runtime64"), Status,
-          (ExecutableSymbol, ExecutableSymbolInfo, Ref{T}), exsym, attribute, value)
+function getinfo(exsym::ExecutableSymbol, attribute::ExecutableSymbolInfo,
+                 value::Union{Vector,Base.RefValue,String})
+    # should allocated based on ExecutableSymbolInfo
+    executable_symbol_get_info(exsym, attribute, value)
 end
 
 function memory_allocate(region::Region, size::Integer, ref::Ref{Ptr{T}}) where T
@@ -62,7 +47,7 @@ function memory_allocate(region::Region, size::Integer, ref::Ref{Ptr{T}}) where 
           (Region, Csize_t, Ref{Ptr{T}}), region, size, ref)
 end
 
-#= FIXME?
+#= FIXME ???
 Base.setproperty!(ref::Ref{T}, value, prop::Symbol) where T<:HSA_MUTABLE_TYPES =
     setproperty!(ref, value, Val(prop)
 @generated function Base.setproperty!(ref::Ref{T}, value, prop::Val{V}) where {T<:HSA_MUTABLE_TYPES,V} =

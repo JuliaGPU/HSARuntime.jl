@@ -35,9 +35,15 @@ function system_get_major_extension_table(extension::UInt16, version_major::UInt
     ccall((:hsa_system_get_major_extension_table, "libhsa-runtime64"), Status, (UInt16, UInt16, Csize_t, Ref{Cvoid}), extension, version_major, table_length, table)
 end
 
-#TODO: perhaps comment out? duplicates wrappers in hsa_ext.jl
-function agent_get_info(agent::Agent, attribute::AgentInfo, value) # ::Union{Ref, Base.RefValue})
-    ccall((:hsa_agent_get_info, "libhsa-runtime64"), Status, (Agent, AgentInfo, Ptr{Cvoid}), agent, attribute, value)
+function agent_get_info(agent::Agent, attribute::AgentInfo,
+                        value::Union{Ref{T},Vector{T}}) where T
+    ccall((:hsa_agent_get_info, "libhsa-runtime64"), Status,
+          (Agent, AgentInfo, Ref{T}), agent, attribute, value)
+end
+
+function agent_get_info(agent::Agent, attribute::AgentInfo, value::String)
+    ccall((:hsa_agent_get_info, "libhsa-runtime64"), Status,
+          (Agent, AgentInfo, Cstring), agent, attribute, value)
 end
 
 #TODO: function iterate_agents(callback::Ref{Cvoid}, data::Ref{Cvoid})
@@ -492,9 +498,16 @@ end
 function isa_get_info(isa::ISA, attribute::ISAInfo, index::Integer, value::Ref{Cvoid})
     ccall((:hsa_isa_get_info, "libhsa-runtime64"), Status, (ISA, ISAInfo, UInt32, Ref{Cvoid}), isa, attribute, index, value)
 end
-#TODO: perhaps comment out? replaced by wrappers in hsa_extras.jl
-function isa_get_info_alt(isa::ISA, attribute::ISAInfo, value)
-    ccall((:hsa_isa_get_info_alt, "libhsa-runtime64"), Status, (ISA, ISAInfo, Ptr{Cvoid}), isa, attribute, value)
+
+function isa_get_info_alt(isa::ISA, attribute::ISAInfo,
+                          value::Union{Vector{T},Ref{T}}) where T
+    ccall((:hsa_isa_get_info_alt, "libhsa-runtime64"), Status,
+          (ISA, ISAInfo, Ref{T}), isa, attribute, value)
+end
+
+function isa_get_info_alt(isa::ISA, attribute::ISAInfo, value::String)
+    ccall((:hsa_isa_get_info_alt, "libhsa-runtime64"), Status,
+          (ISA, ISAInfo, Cstring), isa, attribute, value)
 end
 
 function isa_get_exception_policies(isa::ISA, profile::Profile, mask::Ref{UInt16})
@@ -585,8 +598,20 @@ function executable_get_symbol_by_name(executable::Executable, symbol_name, agen
     ccall((:hsa_executable_get_symbol_by_name, "libhsa-runtime64"), Status, (Executable, Cstring, Ref{Agent}, Ref{ExecutableSymbol}), executable, symbol_name, agent, symbol)
 end
 
-function executable_symbol_get_info(executable_symbol::ExecutableSymbol, attribute::ExecutableSymbolInfo, value::Ref{Cvoid})
-    ccall((:hsa_executable_symbol_get_info, "libhsa-runtime64"), Status, (ExecutableSymbol, ExecutableSymbolInfo, Ref{Cvoid}), executable_symbol, attribute, value)
+function executable_symbol_get_info(executable_symbol::ExecutableSymbol,
+                                    attribute::ExecutableSymbolInfo,
+                                    value::Union{Ref{T},Vector{T}}) where T
+    ccall((:hsa_executable_symbol_get_info, "libhsa-runtime64"), Status,
+          (ExecutableSymbol, ExecutableSymbolInfo, Ref{T}),
+          executable_symbol, attribute, value)
+end
+
+function executable_symbol_get_info(executable_symbol::ExecutableSymbol,
+                                    attribute::ExecutableSymbolInfo,
+                                    value::String)
+    ccall((:hsa_executable_symbol_get_info, "libhsa-runtime64"), Status,
+          (ExecutableSymbol, ExecutableSymbolInfo, Cstring),
+          executable_symbol, attribute, value)
 end
 
 function executable_iterate_symbols(executable::Executable, callback::Ref{Cvoid}, data::Ref{Cvoid})
