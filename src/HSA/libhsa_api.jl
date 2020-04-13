@@ -71,8 +71,18 @@ function agent_major_extension_supported(extension::UInt16, agent::Agent, versio
     ccall((:hsa_agent_major_extension_supported, "libhsa-runtime64"), Status, (UInt16, Agent, UInt16, Ref{UInt16}, Ref{Bool}), extension, agent, version_major, version_minor, result)
 end
 
-function signal_create(initial_value::SignalValue, num_consumers::Integer, consumers::Ref{Agent}, signal::Ref{Signal})
-    ccall((:hsa_signal_create, "libhsa-runtime64"), Status, (SignalValue, UInt32, Ref{Agent}, Ref{Signal}), initial_value, num_consumers, consumers, signal)
+function signal_create(initial_value::SignalValue, num_consumers::Integer,
+                       consumers::Ref{Agent}, signal::Ref{Signal})
+    ccall((:hsa_signal_create, "libhsa-runtime64"), Status,
+          (SignalValue, UInt32, Ref{Agent}, Ref{Signal}),
+          initial_value, num_consumers, consumers, signal)
+end
+
+function signal_create(initial_value::SignalValue, num_consumers::Integer,
+                       consumers::Ptr{Cvoid}, signal::Ref{Signal})
+    ccall((:hsa_signal_create, "libhsa-runtime64"), Status,
+          (SignalValue, UInt32, Ptr{Cvoid}, Ref{Signal}),
+          initial_value, num_consumers, consumers, signal)
 end
 
 function signal_destroy(signal::Signal)
@@ -335,8 +345,8 @@ function signal_group_wait_any_relaxed(signal_group::SignalGroup, conditions::Re
     ccall((:hsa_signal_group_wait_any_relaxed, "libhsa-runtime64"), Status, (SignalGroup, Ref{SignalCondition}, Ref{SignalValue}, WaitState, Ref{Signal}, Ref{SignalValue}), signal_group, conditions, compare_values, wait_state_hint, signal, value)
 end
 
-function queue_create(agent::Agent, size::Integer, type::QueueType, callback::Ref{Cvoid}, data::Ref{Cvoid}, private_segment_size::Integer, group_segment_size::Integer, queue::Ref{Ref{Queue}})
-    ccall((:hsa_queue_create, "libhsa-runtime64"), Status, (Agent, UInt32, QueueType, Ref{Cvoid}, Ref{Cvoid}, UInt32, UInt32, Ref{Ref{Queue}}), agent, size, type, callback, data, private_segment_size, group_segment_size, queue)
+function queue_create(agent::Agent, size::Integer, type::QueueType, callback::Ptr{Cvoid}, data::Ptr{Cvoid}, private_segment_size::Integer, group_segment_size::Integer, queue::Ref{Ptr{Queue}})
+    ccall((:hsa_queue_create, "libhsa-runtime64"), Status, (Agent, UInt32, QueueType, Ptr{Cvoid}, Ptr{Cvoid}, UInt32, UInt32, Ref{Ptr{Queue}}), agent, size, type, callback, data, private_segment_size, group_segment_size, queue)
 end
 
 function soft_queue_create(region::Region, size::Integer, type::QueueType, features::Integer, doorbell_signal::Signal, queue::Ref{Ref{Queue}})
@@ -534,8 +544,8 @@ function code_object_reader_create_from_file(file::File, code_object_reader::Ref
     ccall((:hsa_code_object_reader_create_from_file, "libhsa-runtime64"), Status, (File, Ref{CodeObjectReader}), file, code_object_reader)
 end
 
-function code_object_reader_create_from_memory(code_object::Ref{Cvoid}, size::Integer, code_object_reader::Ref{CodeObjectReader})
-    ccall((:hsa_code_object_reader_create_from_memory, "libhsa-runtime64"), Status, (Ref{Cvoid}, Csize_t, Ref{CodeObjectReader}), code_object, size, code_object_reader)
+function code_object_reader_create_from_memory(code_object::Union{Vector{UInt8},Ref{UInt8}}, size::Integer, code_object_reader::Ref{CodeObjectReader})
+    ccall((:hsa_code_object_reader_create_from_memory, "libhsa-runtime64"), Status, (Ref{UInt8}, Csize_t, Ref{CodeObjectReader}), code_object, size, code_object_reader)
 end
 
 function code_object_reader_destroy(code_object_reader::CodeObjectReader)
