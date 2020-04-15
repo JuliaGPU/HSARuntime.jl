@@ -1,4 +1,5 @@
 using HSARuntime
+using AMDGPUnative
 using Test
 
 if HSARuntime.configured
@@ -7,11 +8,17 @@ if HSARuntime.configured
         include("agent.jl")
         include("array.jl")
         include("memory.jl")
+
+        if AMDGPUnative.configured
+            include("vadd.jl")
+        else
+            @warn "AMDGPUnative.jl has not been configured; skipping on-device tests"
+        end
     else
-        @warn("No devices detected; skipping on-device tests")
+        @warn "No devices detected; skipping runtime tests"
     end
 else
-    @warn("HSARuntime.jl has not been configured; skipping on-device tests.")
+    error("HSARuntime.jl has not been configured; skipping all tests")
 end
 
 #=
