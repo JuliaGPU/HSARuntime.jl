@@ -46,7 +46,7 @@ function agent_get_info(agent::Agent, attribute::AgentInfo, value::String)
           (Agent, AgentInfo, Cstring), agent, attribute, value)
 end
 
-#TODO: function iterate_agents(callback::Ref{Cvoid}, data::Ref{Cvoid})
+#FIXME: function iterate_agents(callback::Ref{Cvoid}, data::Ref{Cvoid})
 function iterate_agents(callback, data)
     ccall((:hsa_iterate_agents, "libhsa-runtime64"), Status, (Ptr{Cvoid}, Ptr{Cvoid}), callback, data)
 end
@@ -571,6 +571,10 @@ end
 function executable_load_agent_code_object(executable::Executable, agent::Agent, code_object_reader::CodeObjectReader, options, loaded_code_object::Ref{LoadedCodeObject})
     ccall((:hsa_executable_load_agent_code_object, "libhsa-runtime64"), Status, (Executable, Agent, CodeObjectReader, Cstring, Ref{LoadedCodeObject}), executable, agent, code_object_reader, options, loaded_code_object)
 end
+# FIXME: temporary dispatch while sorting out calls to this function
+function executable_load_agent_code_object(executable::Executable, agent::Agent, code_object_reader::CodeObjectReader, options, loaded_code_object)
+    ccall((:hsa_executable_load_agent_code_object, "libhsa-runtime64"), Status, (Executable, Agent, CodeObjectReader, Ptr{Cvoid}, Ptr{Cvoid}), executable, agent, code_object_reader, options, loaded_code_object)
+end
 
 function executable_freeze(executable::Executable, options)
     ccall((:hsa_executable_freeze, "libhsa-runtime64"), Status, (Executable, Cstring), executable, options)
@@ -628,12 +632,12 @@ function executable_iterate_symbols(executable::Executable, callback::Ref{Cvoid}
     ccall((:hsa_executable_iterate_symbols, "libhsa-runtime64"), Status, (Executable, Ref{Cvoid}, Ref{Cvoid}), executable, callback, data)
 end
 
-function executable_iterate_agent_symbols(executable::Executable, agent::Agent, callback::Ref{Cvoid}, data::Ref{Cvoid})
-    ccall((:hsa_executable_iterate_agent_symbols, "libhsa-runtime64"), Status, (Executable, Agent, Ref{Cvoid}, Ref{Cvoid}), executable, agent, callback, data)
+function executable_iterate_agent_symbols(executable::Executable, agent::Agent, callback::Ptr{Cvoid}, data::Ref{ExecutableSymbol})
+    ccall((:hsa_executable_iterate_agent_symbols, "libhsa-runtime64"), Status, (Executable, Agent, Ptr{Cvoid}, Ref{ExecutableSymbol}), executable, agent, callback, data)
 end
 
-function executable_iterate_program_symbols(executable::Executable, callback::Ref{Cvoid}, data::Ref{Cvoid})
-    ccall((:hsa_executable_iterate_program_symbols, "libhsa-runtime64"), Status, (Executable, Ref{Cvoid}, Ref{Cvoid}), executable, callback, data)
+function executable_iterate_program_symbols(executable::Executable, callback::Ptr{Cvoid}, data::Ptr{Cvoid})
+    ccall((:hsa_executable_iterate_program_symbols, "libhsa-runtime64"), Status, (Executable, Ptr{Cvoid}, Ptr{Cvoid}), executable, callback, data)
 end
 
 function code_object_serialize(code_object::CodeObject, alloc_callback::Ref{Cvoid}, callback_data::CallbackData, options, serialized_code_object::Ref{Ref{Cvoid}}, serialized_code_object_size::Ref{Csize_t})
@@ -668,8 +672,8 @@ function code_symbol_get_info(code_symbol::CodeSymbol, attribute::CodeSymbolInfo
     ccall((:hsa_code_symbol_get_info, "libhsa-runtime64"), Status, (CodeSymbol, CodeSymbolInfo, Ref{Cvoid}), code_symbol, attribute, value)
 end
 
-function code_object_iterate_symbols(code_object::CodeObject, callback::Ref{Cvoid}, data::Ref{Cvoid})
-    ccall((:hsa_code_object_iterate_symbols, "libhsa-runtime64"), Status, (CodeObject, Ref{Cvoid}, Ref{Cvoid}), code_object, callback, data)
+function code_object_iterate_symbols(code_object::CodeObject, callback::Ptr{Cvoid}, data::Ptr{Cvoid})
+    ccall((:hsa_code_object_iterate_symbols, "libhsa-runtime64"), Status, (CodeObject, Ptr{Cvoid}, Ptr{Cvoid}), code_object, callback, data)
 end
 
 function amd_queue_intercept_register(queue::Ref{Queue}, callback::QueueInterceptHandler, user_data::Ref{Cvoid})
@@ -804,8 +808,8 @@ function amd_memory_pool_get_info(memory_pool::MemoryPool, attribute::MemoryPool
     ccall((:hsa_amd_memory_pool_get_info, "libhsa-runtime64"), Status, (MemoryPool, MemoryPoolInfo, Ref{Cvoid}), memory_pool, attribute, value)
 end
 
-function amd_agent_iterate_memory_pools(agent::Agent, callback::Ref{Cvoid}, data::Ref{Cvoid})
-    ccall((:hsa_amd_agent_iterate_memory_pools, "libhsa-runtime64"), Status, (Agent, Ref{Cvoid}, Ref{Cvoid}), agent, callback, data)
+function amd_agent_iterate_memory_pools(agent::Agent, callback::Ptr{Cvoid}, data::Ptr{Cvoid})
+    ccall((:hsa_amd_agent_iterate_memory_pools, "libhsa-runtime64"), Status, (Agent, Ptr{Cvoid}, Ptr{Cvoid}), agent, callback, data)
 end
 
 function amd_memory_pool_allocate(memory_pool::MemoryPool, size::Integer, flags::Integer, ptr::Ref{Ref{Cvoid}})
@@ -990,8 +994,8 @@ function ext_program_add_module(program::ExtProgram, _module::ExtModule)
     ccall((:hsa_ext_program_add_module, "libhsa-runtime64"), Status, (ExtProgram, ExtModule), program, _module)
 end
 
-function ext_program_iterate_modules(program::ExtProgram, callback::Ref{Cvoid}, data::Ref{Cvoid})
-    ccall((:hsa_ext_program_iterate_modules, "libhsa-runtime64"), Status, (ExtProgram, Ref{Cvoid}, Ref{Cvoid}), program, callback, data)
+function ext_program_iterate_modules(program::ExtProgram, callback::Ptr{Cvoid}, data::Ptr{Cvoid})
+    ccall((:hsa_ext_program_iterate_modules, "libhsa-runtime64"), Status, (ExtProgram, Ptr{Cvoid}, Ptr{Cvoid}), program, callback, data)
 end
 
 function ext_program_get_info(program::ExtProgram, attribute::ProgramInfo, value::Ref{Cvoid})
@@ -1034,8 +1038,8 @@ function ven_amd_aqlprofile_get_info(profile::Ref{AQLProfile}, attribute::AQLPro
     ccall((:hsa_ven_amd_aqlprofile_get_info, "libhsa-runtime64"), Status, (Ref{AQLProfile}, AQLProfileInfoType, Ref{Cvoid}), profile, attribute, value)
 end
 
-function ven_amd_aqlprofile_iterate_data(profile::Ref{AQLProfile}, callback::AQLProfileDataCallback, data::Ref{Cvoid})
-    ccall((:hsa_ven_amd_aqlprofile_iterate_data, "libhsa-runtime64"), Status, (Ref{AQLProfile}, AQLProfileDataCallback, Ref{Cvoid}), profile, callback, data)
+function ven_amd_aqlprofile_iterate_data(profile::Ref{AQLProfile}, callback::AQLProfileDataCallback, data::Ptr{Cvoid})
+    ccall((:hsa_ven_amd_aqlprofile_iterate_data, "libhsa-runtime64"), Status, (Ref{AQLProfile}, AQLProfileDataCallback, Ptr{Cvoid}), profile, callback, data)
 end
 
 function ven_amd_aqlprofile_error_string(str::Ref{Cstring})

@@ -192,7 +192,7 @@ function iterate_exec_agent_syms_cb(exe::HSA.Executable, agent::HSA.Agent,
                                     sym_ref::Ptr{Cvoid})
 
     sym_ref = Base.unsafe_convert(Ptr{HSA.ExecutableSymbol}, sym_ref)
-    sym_type = Ref{SymbolKind}()
+    sym_type = Ref{HSA.SymbolKind}()
     getinfo(sym, HSA.EXECUTABLE_SYMBOL_INFO_TYPE,
                                    sym_type) |> check
 
@@ -208,7 +208,7 @@ function iterate_exec_agent_syms_cb(exe::HSA.Executable, agent::HSA.Agent,
     return HSA.STATUS_SUCCESS
 end
 function iterate_exec_prog_syms_cb(exe::HSA.Executable, sym::HSA.ExecutableSymbol, data)
-    sym_type = Ref{SymbolKind}()
+    sym_type = Ref{HSA.SymbolKind}()
     getinfo(sym, HSA.EXECUTABLE_SYMBOL_INFO_TYPE, sym_type) |> check
 
     #if sym_type[] == HSA.SYMBOL_KIND_KERNEL
@@ -285,7 +285,7 @@ function HSAKernelInstance(agent::HSAAgent, exe::HSAExecutable, symbol::String, 
                             (HSA.Executable, HSA.ExecutableSymbol, Ptr{Cvoid}))
     exec_symbol = Ref{HSA.ExecutableSymbol}()
     @debug "Agent symbols"
-    executable_iterate_agent_symbols(exe.executable[], agent.agent,
+    HSA.executable_iterate_agent_symbols(exe.executable[], agent.agent,
                                      agent_func, exec_symbol) |> check
     #@debug "Program symbols"
     #hsa_executable_iterate_program_symbols(exe.executable[], prog_func, C_NULL) |> check
@@ -320,8 +320,8 @@ function HSAKernelInstance(agent::HSAAgent, exe::HSAExecutable, symbol::String, 
     getinfo(exec_symbol[], HSA.EXECUTABLE_SYMBOL_INFO_KERNEL_PRIVATE_SEGMENT_SIZE,
             private_segment_size) |> check
 
-    finegrained_region = HSA.get_region(agent, :finegrained)
-    kernarg_region = HSA.get_region(agent, :kernarg)
+    finegrained_region = get_region(agent, :finegrained)
+    kernarg_region = get_region(agent, :kernarg)
 
     # Allocate the kernel argument buffer from the correct region
     kernarg_address = Ref{Ptr{Nothing}}()
