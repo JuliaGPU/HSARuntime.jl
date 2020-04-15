@@ -32,7 +32,9 @@ export get_default_agent, get_default_queue
 
 include(joinpath(@__DIR__, "HSA", "HSA.jl"))
 import .HSA: Agent, Queue, Executable, Status, Signal
+
 include("extras.jl")
+
 ### HSA Errors ###
 
 export HSAError
@@ -86,7 +88,7 @@ end
 
 ### Types ###
 
-# TODO: maybe redundant data structure?
+# TODO: maybe redundant data structure? Russian dolls
 mutable struct HSAAgent
     agent::HSA.Agent
 end
@@ -455,7 +457,7 @@ get_default_queue() = get_default_queue(get_default_agent())
 function get_name(agent::HSAAgent)
     #len = Ref(0)
     #hsa_agent_get_info(agent.agent, HSA.AGENT_INFO_NAME_LENGTH, len) |> check
-    #FIXME: this is not a good way of doing it
+    #FIXME: this could be better? 
     name = Vector{UInt8}(undef, 64)
     getinfo(agent.agent, HSA.AGENT_INFO_NAME, name) |> check
     return rstrip(String(name), '\0')
@@ -568,7 +570,7 @@ function launch!(queue::HSAQueue, kernel::HSAKernelInstance, signal::HSASignal;
 
     # Increment the write index and ring the doorbell to dispatch the kernel
     HSA.queue_store_write_index_relaxed(queue[], index+1)
-    HSA.signal_store_relaxed(_queue.doorbell_signal, index)
+    HSA.signal_store_relaxed(_queue.doorbell_signal, Int64(index))
 end
 
 """

@@ -1,16 +1,17 @@
 # Pointer/type aliases
-const QueueInterceptPacketWriter = Ref{Nothing}
-const QueueInterceptHandler = Ref{Nothing}
-const RuntimeQueueNotifier = Ref{Nothing}
-const SignalHandler = Ref{Nothing}
-const DeallocationCallback = Ref{Nothing}
-const AQLProfileDataCallback = Ref{Nothing}
-const SystemEventCallback = Ref{Nothing}
+const QueueInterceptPacketWriter = Ptr{Cvoid}
+const QueueInterceptHandler = Ptr{Cvoid}
+const RuntimeQueueNotifier = Ptr{Cvoid}
+const SignalHandler = Ptr{Cvoid}
+const DeallocationCallback = Ptr{Cvoid}
+const AQLProfileDataCallback = Ptr{Cvoid}
+const SystemEventCallback = Ptr{Cvoid}
 const ToolsEvent = UInt64
 const SignalValue = Int64
+#const SignalValue = Union{Int64,UInt64} #TODO: check me on use of signal_store_relaxed
 const MachineVersion = UInt16
 const File = Cint
-const ExtModule = Ref{Nothing}
+const ExtModule = Ptr{Cvoid}
 
 # Composite types
 
@@ -100,7 +101,7 @@ end
 struct Queue
     type::QueueType
     features::UInt32
-    base_address::Ref{Nothing}
+    base_address::Ptr{Cvoid}
     doorbell_signal::Signal
     size::UInt32
     reserved1::UInt32
@@ -120,7 +121,7 @@ struct KernelDispatchPacket
     private_segment_size::UInt32
     group_segment_size::UInt32
     kernel_object::UInt64
-    kernarg_address::Ref{Nothing}
+    kernarg_address::Ptr{Cvoid}
     reserved2::UInt64
     completion_signal::Signal
 end
@@ -129,7 +130,7 @@ struct AgentDispatchPacket
     header::UInt16
     type::UInt16
     reserved0::UInt32
-    return_address::Ref{Nothing}
+    return_address::Ptr{Cvoid}
     arg::NTuple{4, UInt64}
     reserved2::UInt64
     completion_signal::Signal
@@ -241,10 +242,10 @@ struct AMDKernelCode
 end
 
 struct RuntimeLoaderDebugInfo
-    elf_raw::Ref{Nothing}
+    elf_raw::Ptr{Cvoid}
     elf_size::UInt64
     kernel_name::Cstring
-    owning_segment::Ref{Nothing}
+    owning_segment::Ptr{Cvoid}
 end
 
 struct AMDQueue
@@ -291,10 +292,10 @@ end
 #=
 struct HSAAPITable
     version::APITableVersion
-    core::Ref{CoreAPITable}
-    AMD_ext::Ref{AMDExtTable}
-    finalizer_ext::Ref{FinalizerExtTable}
-    image_ext::Ref{ImageExtTable}
+    core::Ptr{CoreAPITable}
+    AMD_ext::Ptr{AMDExtTable}
+    finalizer_ext::Ptr{FinalizerExtTable}
+    image_ext::Ptr{ImageExtTable}
 end
 =#
 struct Image
@@ -337,37 +338,37 @@ struct ExtSamplerDescriptor
 end
 
 struct Images_1_00Pfn
-    image_get_capability::Ref{Nothing}
-    image_data_get_info::Ref{Nothing}
-    image_create::Ref{Nothing}
-    image_destroy::Ref{Nothing}
-    image_copy::Ref{Nothing}
-    image_import::Ref{Nothing}
-    image_export::Ref{Nothing}
-    image_clear::Ref{Nothing}
-    sampler_create::Ref{Nothing}
-    sampler_destroy::Ref{Nothing}
+    image_get_capability::Ptr{Cvoid}
+    image_data_get_info::Ptr{Cvoid}
+    image_create::Ptr{Cvoid}
+    image_destroy::Ptr{Cvoid}
+    image_copy::Ptr{Cvoid}
+    image_import::Ptr{Cvoid}
+    image_export::Ptr{Cvoid}
+    image_clear::Ptr{Cvoid}
+    sampler_create::Ptr{Cvoid}
+    sampler_destroy::Ptr{Cvoid}
 end
 
 struct Images_1Pfn
-    image_get_capability::Ref{Nothing}
-    image_data_get_info::Ref{Nothing}
-    image_create::Ref{Nothing}
-    image_destroy::Ref{Nothing}
-    image_copy::Ref{Nothing}
-    image_import::Ref{Nothing}
-    image_export::Ref{Nothing}
-    image_clear::Ref{Nothing}
-    sampler_create::Ref{Nothing}
-    sampler_destroy::Ref{Nothing}
-    image_get_capability_with_layout::Ref{Nothing}
-    image_data_get_info_with_layout::Ref{Nothing}
-    image_create_with_layout::Ref{Nothing}
+    image_get_capability::Ptr{Cvoid}
+    image_data_get_info::Ptr{Cvoid}
+    image_create::Ptr{Cvoid}
+    image_destroy::Ptr{Cvoid}
+    image_copy::Ptr{Cvoid}
+    image_import::Ptr{Cvoid}
+    image_export::Ptr{Cvoid}
+    image_clear::Ptr{Cvoid}
+    sampler_create::Ptr{Cvoid}
+    sampler_destroy::Ptr{Cvoid}
+    image_get_capability_with_layout::Ptr{Cvoid}
+    image_data_get_info_with_layout::Ptr{Cvoid}
+    image_create_with_layout::Ptr{Cvoid}
 end
 
 struct AMDHDPFlush
-    HDP_MEM_FLUSH_CNTL::Ref{UInt32}
-    HDP_REG_FLUSH_CNTL::Ref{UInt32}
+    HDP_MEM_FLUSH_CNTL::Ptr{UInt32}
+    HDP_REG_FLUSH_CNTL::Ptr{UInt32}
 end
 
 struct ProfilingDispatchTime
@@ -385,7 +386,7 @@ struct MemoryPool
 end
 
 struct PitchedPtr
-    base::Ref{Nothing}
+    base::Ptr{Cvoid}
     pitch::UInt64
     slice::UInt64
 end
@@ -411,10 +412,10 @@ end
 struct PointerInfo
     size::UInt32
     type::PointerType
-    agentBaseAddress::Ref{Nothing}
-    hostBaseAddress::Ref{Nothing}
+    agentBaseAddress::Ptr{Cvoid}
+    hostBaseAddress::Ptr{Cvoid}
     sizeInBytes::UInt64
-    userData::Ref{Nothing}
+    userData::Ptr{Cvoid}
     agentOwner::Agent
 end
 
@@ -453,7 +454,7 @@ end
 
 
 struct WaveControlMessage
-    memory_va::Ref{Nothing}
+    memory_va::Ptr{Cvoid}
 end
 
 struct KernelExecutionMode
@@ -479,12 +480,12 @@ struct ExtControlDirectives
 end
 
 struct ExtFinalizer_1_00Pfn
-    EXT_program_create::Ref{Nothing}
-    EXT_program_destroy::Ref{Nothing}
-    EXT_program_add_module::Ref{Nothing}
-    EXT_program_iterate_modules::Ref{Nothing}
-    EXT_program_get_info::Ref{Nothing}
-    EXT_program_finalize::Ref{Nothing}
+    EXT_program_create::Ptr{Cvoid}
+    EXT_program_destroy::Ptr{Cvoid}
+    EXT_program_add_module::Ptr{Cvoid}
+    EXT_program_iterate_modules::Ptr{Cvoid}
+    EXT_program_get_info::Ptr{Cvoid}
+    EXT_program_finalize::Ptr{Cvoid}
 end
 
 struct AQLProfileEvent
@@ -499,16 +500,16 @@ struct AQLProfileParameter
 end
 
 struct AQLProfileDescriptor
-    ptr::Ref{Nothing}
+    ptr::Ptr{Cvoid}
     size::UInt32
 end
 
 struct AQLProfile
     agent::Agent
     type::AQLProfileEventType
-    events::Ref{AQLProfileEvent}
+    events::Ptr{AQLProfileEvent}
     event_count::UInt32
-    parameters::Ref{AQLProfileParameter}
+    parameters::Ptr{AQLProfileParameter}
     parameter_count::UInt32
     output_buffer::AQLProfileDescriptor
     command_buffer::AQLProfileDescriptor
@@ -531,40 +532,40 @@ struct AQLProfileIDQuery
 end
 
 struct AQLProfile_1_00Pfn
-    version_major::Ref{Nothing}
-    version_minor::Ref{Nothing}
-    error_string::Ref{Nothing}
-    validate_event::Ref{Nothing}
-    start::Ref{Nothing}
-    stop::Ref{Nothing}
-    read::Ref{Nothing}
-    legacy_get_pm4::Ref{Nothing}
-    get_info::Ref{Nothing}
-    iterate_data::Ref{Nothing}
+    version_major::Ptr{Cvoid}
+    version_minor::Ptr{Cvoid}
+    error_string::Ptr{Cvoid}
+    validate_event::Ptr{Cvoid}
+    start::Ptr{Cvoid}
+    stop::Ptr{Cvoid}
+    read::Ptr{Cvoid}
+    legacy_get_pm4::Ptr{Cvoid}
+    get_info::Ptr{Cvoid}
+    iterate_data::Ptr{Cvoid}
 end
 
 struct SegmentDescriptor
     agent::Agent
     executable::Executable
     code_object_storage_type::CodeObjectStorageType
-    code_object_storage_base::Ref{Nothing}
+    code_object_storage_base::Ptr{Cvoid}
     code_object_storage_size::UInt64
     code_object_storage_offset::UInt64
-    segment_base::Ref{Nothing}
+    segment_base::Ptr{Cvoid}
     segment_size::UInt64
 end
 
 struct AMDLoader_1_00Pfn
-    host_address::Ref{Nothing}
-    segment_descriptors::Ref{Nothing}
-    executable::Ref{Nothing}
+    host_address::Ptr{Cvoid}
+    segment_descriptors::Ptr{Cvoid}
+    executable::Ptr{Cvoid}
 end
 
 struct AMDLoader_1_01Pfn
-    query_host_address::Ref{Nothing}
-    query_segment_descriptors::Ref{Nothing}
-    query_executable::Ref{Nothing}
-    executable_iterate_loaded_code_objects::Ref{Nothing}
-    loaded_code_object_get_info::Ref{Nothing}
+    query_host_address::Ptr{Cvoid}
+    query_segment_descriptors::Ptr{Cvoid}
+    query_executable::Ptr{Cvoid}
+    executable_iterate_loaded_code_objects::Ptr{Cvoid}
+    loaded_code_object_get_info::Ptr{Cvoid}
 end
 
