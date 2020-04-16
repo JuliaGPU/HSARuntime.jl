@@ -43,25 +43,6 @@ struct HSAError <: Exception
     code::Status
 end
 
-#=
-struct HSAStringBuffer
-    str::Vector{UInt8}
-   size::UInt32
-        function HSAStringBuffer(size = 256)
-            str = Vector{UInt8}(undef, size)
-            size = UInt32(size)
-            new(str, size)
-        end
-end
-
-function description(err::HSAError)
-    buf = HSAStringBuffer(status_string(err.code, C_NULL))
-    status_string(err.code, buf.str)
-    buf.str[end] = 0
-    return unsafe_string(pointer(x.str))
-end
-=#
-
 """
     description(err::HSAError)
 
@@ -88,7 +69,6 @@ end
 
 ### Types ###
 
-# TODO: maybe redundant data structure? Russian dolls
 mutable struct HSAAgent
     agent::HSA.Agent
 end
