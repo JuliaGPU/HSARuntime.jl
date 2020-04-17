@@ -520,7 +520,7 @@ function launch!(queue::HSAQueue, kernel::HSAKernelInstance, signal::HSASignal;
         dispatch_packet, 0, sizeof(dispatch_packet[]))
     _packet = dispatch_packet[]
     @set! _packet.setup = 0
-    @set! _packet.setup |= 3 << Int(HSA_KERNEL_DISPATCH_PACKET_SETUP_DIMENSIONS)
+    @set! _packet.setup |= 3 << Int(HSA.KERNEL_DISPATCH_PACKET_SETUP_DIMENSIONS)
     @set! _packet.workgroup_size_x = workgroup_size[1]
     @set! _packet.workgroup_size_y = workgroup_size[2]
     @set! _packet.workgroup_size_z = workgroup_size[3]
