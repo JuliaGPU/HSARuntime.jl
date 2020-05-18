@@ -27,12 +27,12 @@ Base.unsafe_convert(::Type{Ptr{T}}, buf::Buffer) where {T} = convert(Ptr{T}, buf
 
 function view(buf::Buffer, bytes::Int)
     bytes > buf.bytesize && throw(BoundsError(buf, bytes))
-    return Mem.Buffer(buf.ptr+bytes, buf.bytesize-bytes, buf.agent)
+    return Mem.Buffer(buf.ptr + bytes, buf.bytesize - bytes, buf.agent)
 end
 
 ## refcounting
 
-const refcounts = Dict{Buffer, Int}()
+const refcounts = Dict{Buffer,Int}()
 
 function refcount(buf::Buffer)
     get(refcounts, Base.unsafe_convert(Ptr{Cvoid}, buf), 0)
@@ -60,7 +60,7 @@ function release(buf::Buffer)
     refcount = refcounts[buf]
     @assert refcount > 0 "Release of dead $buf"
     refcounts[buf] = refcount - 1
-    return refcount==1
+    return refcount == 1
 end
 
 
@@ -98,7 +98,7 @@ total() = info()[2]
 
 Returns the used amount of memory (in bytes), allocated on the agent.
 """
-used() = total()-free()
+used() = total() - free()
 
 
 ## generic interface (for documentation purposes)
@@ -171,10 +171,8 @@ end
 
 Initialize device memory by copying the value `val` for `len` times.
 """
-function set!(buf::Buffer, value::T, len::Integer) where T<:Unsigned
-    ccall(:memset, Cvoid,
-          (Ptr{Cvoid}, T, Csize_t),
-          buf.ptr, value, len*sizeof(T))
+function set!(buf::Buffer, value::T, len::Integer) where {T<:Unsigned}
+    ccall(:memset, Cvoid, (Ptr{Cvoid}, T, Csize_t), buf.ptr, value, len * sizeof(T))
 end
 
 """
@@ -183,9 +181,7 @@ end
 Upload `nbytes` memory from `src` at the host to `dst` on the device.
 """
 function upload!(dst::Buffer, src::Ref, nbytes::Integer)
-    ccall(:memcpy, Cvoid,
-          (Ptr{Cvoid}, Ptr{Cvoid}, Csize_t),
-          dst.ptr, src, nbytes)
+    ccall(:memcpy, Cvoid, (Ptr{Cvoid}, Ptr{Cvoid}, Csize_t), dst.ptr, src, nbytes)
 end
 
 """
@@ -194,9 +190,7 @@ end
 Download `nbytes` memory from `src` on the device to `dst` on the host.
 """
 function download!(dst::Ref, src::Buffer, nbytes::Integer)
-    ccall(:memcpy, Cvoid,
-          (Ptr{Cvoid}, Ptr{Cvoid}, Csize_t),
-          dst, src.ptr, nbytes)
+    ccall(:memcpy, Cvoid, (Ptr{Cvoid}, Ptr{Cvoid}, Csize_t), dst, src.ptr, nbytes)
 end
 
 """
@@ -205,9 +199,7 @@ end
 Transfer `nbytes` of device memory from `src` to `dst`.
 """
 function transfer!(dst::Buffer, src::Buffer, nbytes::Integer)
-    ccall(:memcpy, Cvoid,
-          (Ptr{Cvoid}, Ptr{Cvoid}, Csize_t),
-          dst.ptr, src.ptr, nbytes)
+    ccall(:memcpy, Cvoid, (Ptr{Cvoid}, Ptr{Cvoid}, Csize_t), dst.ptr, src.ptr, nbytes)
 end
 
 
@@ -261,7 +253,8 @@ function check_type(::Type{Buffer}, T)
     if isa(T, UnionAll) || T.abstract || !isconcretetype(T)
         throw(ArgumentError("cannot represent abstract or non-leaf object"))
     end
-    Base.datatype_pointerfree(T) || throw(ArgumentError("cannot handle non-ptrfree objects"))
+    Base.datatype_pointerfree(T) ||
+        throw(ArgumentError("cannot handle non-ptrfree objects"))
     sizeof(T) == 0 && throw(ArgumentError("cannot represent singleton objects"))
 end
 
@@ -270,10 +263,10 @@ end
 
 Allocate space for `count` objects of type `T`.
 """
-function alloc(::Type{T}, count::Integer=1) where {T}
+function alloc(::Type{T}, count::Integer = 1) where {T}
     check_type(Buffer, T)
 
-    return alloc(sizeof(T)*count)
+    return alloc(sizeof(T) * count)
 end
 
 """
@@ -281,7 +274,7 @@ end
 
 Download `count` objects of type `T` from the device at `src`, returning a vector.
 """
-function download(::Type{T}, src::Buffer, count::Integer=1) where {T}
+function download(::Type{T}, src::Buffer, count::Integer = 1) where {T}
     dst = Vector{T}(undef, count)
     download!(dst, src)
     return dst
