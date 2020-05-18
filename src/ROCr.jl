@@ -1,9 +1,9 @@
-module HSARuntime
+module ROCr
 
 # copied from CUDAdrv/src/CUDAdrv.jl
 const ext = joinpath(dirname(@__DIR__), "deps", "ext.jl")
 isfile(ext) ||
-    error("HSARuntime.jl has not been built, please run Pkg.build(\"HSARuntime\").")
+    error("ROCr.jl has not been built, please run Pkg.build(\"ROCr\").")
 include(ext)
 if !configured
     # default (non-functional) values for critical variables,

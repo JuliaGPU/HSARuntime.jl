@@ -1,38 +1,28 @@
-# HSARuntime.jl - Julia interface to the HSA runtime
+# ROCr.jl
+
+*Julia interface to the ROCm platform runtime.*
+
+This package provides a low-level interface for launching kernels from HSACO files.
+To run kernels written in Julia, see the [AMDGPUnative.jl](https://github.com/JuliaGPU/AMDGPUnative.jl) package.
 
 ## Requirements
 
-### Installed
+To build and run ROCr.jl, you need a functioning ROCm installation.
+More specifically the following components are required:
+
 * [ROCR](https://github.com/RadeonOpenCompute/ROCR-Runtime)
 * [ROCT](https://github.com/RadeonOpenCompute/ROCT-Thunk-Interface)
 * Recent Linux kernel with AMDGPU and HSA enabled
 
-### Setup Instructions
-Currently, the requirements to get everything working properly is a bit poorly
-documented in the upstream docs for any distro other than Ubuntu.  So here is
-a list of requirements I've found through the process of making this work:
+Distro-specific setup instructions can be found in the [AMDGPUnative documentation](https://juliagpu.gitlab.io/AMDGPUnative.jl), as well as the [official ROCm installation guide](https://rocmdocs.amd.com/en/latest/Installation_Guide/Installation-Guide.html).
 
-Make sure /dev/kfd has a group other than root that you can add your user to.
-I recommend adding your user to the "video" group, and setting the
-ownership of /dev/kfd to root:video with 660 permissions.  Or, run as root!
-(Don't actually do this)
+As a reminder, make sure `/dev/kfd` has a group other than `root` that you can add your user to.
+It is recommended adding your user to the `video` group, and setting the ownership of `/dev/kfd` to `root:video` with 660 permissions.
 
-The correct libraries in your LD_LIBRARY_PATH or standard library locations:
+Finally, make sure that the following libraries are in you `LD_LIBRARY_PATH`:
 * libhsa-runtime64.so
 * libhsakmt.so
 
-In terms of Linux kernel versions, just pick the newest one you can (I'm
-running 4.20 as I type this). If building your own kernel, make sure all the
-regular AMDGPU and HSA options are enabled.
+Once everything is properly setup and configured, you should be able to `] build ROCr` successfully;
+after that, if you have a supported GPU attached and enabled, `] test ROCr` should work exactly as you might expect.
 
-You will also need `ld.lld` installed on your system (provided by LLVM/Clang);
-if you built Julia from source, you should have a copy somewhere in
-`deps/scratch/llvm-*/*/bin/` that you can add to your PATH.
-
-Once all of this is setup properly, you should be able to `] build HSARuntime`
-successfully; after that, if you have a supported GPU attached and enabled, `]
-test HSARuntime` should work exactly as you might expect.
-
-## TODO
-* Document some key Linux kernel config options to have enabled
-* Make deps/wrap.jl use system-installed HSA headers

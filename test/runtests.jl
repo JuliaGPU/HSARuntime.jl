@@ -1,12 +1,11 @@
-using HSARuntime
-using HSARuntime.HSA
-using AMDGPUnative
+using ROCr
+using ROCr.HSA
 using Test
 
-if HSARuntime.configured
+if ROCr.configured
     @testset "HSA Status Error" begin
-        errorcode = HSARuntime.HSAError(HSA.STATUS_SUCCESS)
-        @test HSARuntime.description(errorcode) == "HSA_STATUS_SUCCESS: The function has been executed successfully."
+        errorcode = ROCr.HSAError(HSA.STATUS_SUCCESS)
+        @test ROCr.description(errorcode) == "HSA_STATUS_SUCCESS: The function has been executed successfully."
     end
     agents = get_agents()
     if length(agents) > 0
@@ -14,14 +13,17 @@ if HSARuntime.configured
         include("array.jl")
         include("memory.jl")
 
+        # TODO Replace the AMDGPUnative vadd test with one using HSACOs.
+        #=
         if AMDGPUnative.configured
             include("vadd.jl")
         else
             @warn "AMDGPUnative.jl has not been configured; skipping on-device tests"
         end
+        =#
     else
         @warn "No devices detected; skipping runtime tests"
     end
 else
-    error("HSARuntime.jl has not been configured; skipping all tests")
+    error("ROCr.jl has not been configured; skipping all tests")
 end

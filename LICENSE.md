@@ -1,6 +1,6 @@
 Copyright © 2019 Julian P. Samaroo
 
-HSARuntime.jl is licensed under the MIT "Expat" license:
+ROCr.jl is licensed under the MIT "Expat" license:
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

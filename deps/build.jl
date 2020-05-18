@@ -146,7 +146,7 @@ function main()
     end
 
     # find the ld.lld program for linking kernels
-    # NOTE: This isn't needed by HSARuntime.jl directly, but other packages
+    # NOTE: This isn't needed by ROCr.jl directly, but other packages
     # (like AMDGPUnative.jl) will want it to be available, so we find it for
     # them
     ld_path = find_ld_lld()
@@ -182,7 +182,7 @@ function main()
         # we got here, so the status is non-fatal
         build_error("""
 
-            HSARuntime.jl has been built successfully, but there were warnings.
+            ROCr.jl has been built successfully, but there were warnings.
             Some functionality may be unavailable.""")
     end
 end

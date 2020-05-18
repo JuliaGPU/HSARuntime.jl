@@ -1,6 +1,6 @@
-name = "HSARuntime"
-uuid = "2c364e2c-59fb-59c3-96f3-194112e690e0"
-authors = ["Julian P Samaroo <jpsamaroo@jpsamaroo.me"]
+name = "ROCr"
+uuid = "9f942a60-f134-4a3a-961a-62da239d23fb"
+authors = ["Julian P Samaroo <jpsamaroo@jpsamaroo.me>"]
 version = "0.3.0"
 
 [deps]
@@ -14,8 +14,7 @@ Setfield = "0.5"
 julia = "1"
 
 [extras]
-AMDGPUnative = "12f4821f-d7ee-5ba6-b76b-566925c5fcc5"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [targets]
-test = ["AMDGPUnative", "Test"]
+test = ["Test"]

@@ -9,11 +9,9 @@ export Mem
 
 module Mem
 
-
-using ..HSARuntime
-using ..HSARuntime.HSA
-import HSARuntime: check, get_region
-
+using ..ROCr
+using ..ROCr.HSA
+import ROCr: check, get_region
 
 ## buffer type
 
