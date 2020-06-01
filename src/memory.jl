@@ -9,11 +9,9 @@ export Mem
 
 module Mem
 
-
 using ..HSARuntime
 using ..HSARuntime.HSA
 import HSARuntime: check, get_region
-
 
 ## buffer type
 
@@ -182,10 +180,8 @@ end
 
 Upload `nbytes` memory from `src` at the host to `dst` on the device.
 """
-function upload!(dst::Buffer, src::Ref, nbytes::Integer)
-    ccall(:memcpy, Cvoid,
-          (Ptr{Cvoid}, Ptr{Cvoid}, Csize_t),
-          dst.ptr, src, nbytes)
+function upload!(dst::Buffer, src::Ptr{T}, nbytes::Integer) where T
+    HSA.memory_copy(Ptr{T}(dst.ptr), src, nbytes) |> check
 end
 
 """
@@ -193,10 +189,8 @@ end
 
 Download `nbytes` memory from `src` on the device to `dst` on the host.
 """
-function download!(dst::Ref, src::Buffer, nbytes::Integer)
-    ccall(:memcpy, Cvoid,
-          (Ptr{Cvoid}, Ptr{Cvoid}, Csize_t),
-          dst, src.ptr, nbytes)
+function download!(dst::Ptr{T}, src::Buffer, nbytes::Integer) where T
+    HSA.memory_copy(dst, Ptr{T}(src.ptr), nbytes) |> check
 end
 
 """
@@ -205,9 +199,7 @@ end
 Transfer `nbytes` of device memory from `src` to `dst`.
 """
 function transfer!(dst::Buffer, src::Buffer, nbytes::Integer)
-    ccall(:memcpy, Cvoid,
-          (Ptr{Cvoid}, Ptr{Cvoid}, Csize_t),
-          dst.ptr, src.ptr, nbytes)
+    HSA.memory_copy(dst.ptr, src.ptr, nbytes) |> check
 end
 
 
@@ -228,7 +220,7 @@ end
 Upload the contents of an array `src` to `dst`.
 """
 function upload!(dst::Buffer, src::AbstractArray)
-    upload!(dst, Ref(src, 1), sizeof(src))
+    GC.@preserve src upload!(dst, pointer(src, 1), sizeof(src))
 end
 
 """
@@ -249,8 +241,7 @@ Downloads memory from `src` to the array at `dst`. The amount of memory download
 determined by calling `sizeof` on the array, so it needs to be properly preallocated.
 """
 function download!(dst::AbstractArray, src::Buffer)
-    ref = Ref(dst, 1)
-    download!(ref, src, sizeof(dst))
+    GC.@preserve dst download!(pointer(dst, 1), src, sizeof(dst))
     return
 end
 

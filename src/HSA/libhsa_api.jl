@@ -481,8 +481,8 @@ function memory_free(ptr::Ptr{T}) where T
     ccall((:hsa_memory_free, "libhsa-runtime64"), Status, (Ptr{T},), ptr)
 end
 
-function memory_copy(dst::Ref{Cvoid}, src::Ref{Cvoid}, size::Integer)
-    ccall((:hsa_memory_copy, "libhsa-runtime64"), Status, (Ref{Cvoid}, Ref{Cvoid}, Csize_t), dst, src, size)
+function memory_copy(dst::Ptr{T}, src::Ptr{T}, size::Integer) where T
+    ccall((:hsa_memory_copy, "libhsa-runtime64"), Status, (Ptr{T}, Ptr{T}, Csize_t), dst, src, size)
 end
 
 function memory_assign_agent(ptr::Ref{Cvoid}, agent::Agent, access::AccessPermission)

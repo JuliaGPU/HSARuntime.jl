@@ -17,10 +17,10 @@ buf1 = Mem.alloc(sizeof(src))
 
 Mem.set!(buf1, UInt32(0), sizeof(Int)÷sizeof(UInt32))
 
-Mem.upload!(buf1, Ref(src), sizeof(src))
+Mem.upload!(buf1, pointer_from_objref(Ref(src)), sizeof(src))
 
 dst1 = Ref(0)
-Mem.download!(dst1, buf1, sizeof(src))
+Mem.download!(pointer_from_objref(dst1), buf1, sizeof(src))
 @test src == dst1[]
 
 buf2 = Mem.alloc(sizeof(src))
@@ -28,7 +28,7 @@ buf2 = Mem.alloc(sizeof(src))
 Mem.transfer!(buf2, buf1, sizeof(src))
 
 dst2 = Ref(0)
-Mem.download!(dst2, buf2, sizeof(src))
+Mem.download!(pointer_from_objref(dst2), buf2, sizeof(src))
 @test src == dst2[]
 
 Mem.free(buf2)
