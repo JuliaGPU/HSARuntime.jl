@@ -143,19 +143,33 @@ function transfer end
 ## pointer-based
 
 """
-    alloc(bytes::Integer)
+    alloc(bytes::Integer; coherent=false)
+    alloc(agent::HSAAgent, bytes::Integer; coherent=false)
 
-Allocate `bytesize` bytes of fine-grained memory.
+Allocate `bytesize` bytes of HSA-managed memory.
+Allocations are not coherent by default, meaning that the allocated buffer is
+only accessible from the given agent (the default agent if not specified).
+
+If `coherent` is set to `true`, the allocated buffer will be accessible from
+all HSA agents, including the host CPU.
+This, even though convenient, can sometimes be slower than explicit memory transfer.
 """
-function alloc(agent::HSAAgent, bytesize::Integer)
+function alloc(agent::HSAAgent, bytesize::Integer; coherent=false)
     bytesize == 0 && return Buffer(C_NULL, 0, agent)
 
     ptr_ref = Ref{Ptr{Cvoid}}()
-    region = get_region(agent, :finegrained)
+
+    region_kind = if coherent
+        :finegrained
+    else
+        :coarsegrained
+    end
+
+    region = get_region(agent, region_kind)
     check(HSA.memory_allocate(region[], bytesize, ptr_ref))
     return Buffer(ptr_ref[], bytesize, agent)
 end
-alloc(bytesize) = alloc(get_default_agent(), bytesize)
+alloc(bytesize; kwargs...) = alloc(get_default_agent(), bytesize; kwargs...)
 
 function free(buf::Buffer)
     if buf.ptr != C_NULL
@@ -206,12 +220,12 @@ end
 ## array based
 
 """
-    alloc(src::AbstractArray)
+    alloc(src::AbstractArray; alloc_kwargs...)
 
 Allocate space to store the contents of `src`.
 """
-function alloc(src::AbstractArray)
-    return alloc(sizeof(src))
+function alloc(src::AbstractArray; alloc_kwargs...)
+    return alloc(sizeof(src); alloc_kwargs...)
 end
 
 """
@@ -224,12 +238,13 @@ function upload!(dst::Buffer, src::AbstractArray)
 end
 
 """
-    upload(src::AbstractArray)::Buffer
+    upload(src::AbstractArray; alloc_kwargs...)::Buffer
 
 Allocates space for and uploads the contents of an array `src`, returning a Buffer.
+For the allocation keywoard arguments see [`alloc`](@ref).
 """
-function upload(src::AbstractArray)
-    dst = alloc(src)
+function upload(src::AbstractArray; alloc_kwargs...)
+    dst = alloc(src; alloc_kwargs...)
     upload!(dst, src)
     return dst
 end
@@ -245,7 +260,6 @@ function download!(dst::AbstractArray, src::Buffer)
     return
 end
 
-
 ## type based
 
 function check_type(::Type{Buffer}, T)
@@ -257,14 +271,14 @@ function check_type(::Type{Buffer}, T)
 end
 
 """
-    alloc(T::Type, [count::Integer=1])
+    alloc(T::Type, [count::Integer=1]; alloc_kwargs...)
 
 Allocate space for `count` objects of type `T`.
 """
-function alloc(::Type{T}, count::Integer=1) where {T}
+function alloc(::Type{T}, count::Integer=1; alloc_kwargs...) where {T}
     check_type(Buffer, T)
 
-    return alloc(sizeof(T)*count)
+    return alloc(sizeof(T)*count; alloc_kwargs...)
 end
 
 """

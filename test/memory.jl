@@ -13,7 +13,7 @@ end
 # pointer-based
 src = 42
 
-buf1 = Mem.alloc(sizeof(src))
+buf1 = Mem.alloc(sizeof(src); coherent=true)
 
 Mem.set!(buf1, UInt32(0), sizeof(Int)÷sizeof(UInt32))
 
