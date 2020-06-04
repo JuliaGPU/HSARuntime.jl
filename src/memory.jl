@@ -112,6 +112,7 @@ function pointerinfo(ptr::Ptr)
     return ptrinfo[]
 end
 pointerinfo(buf::Buffer) = pointerinfo(buf.ptr)
+pointerinfo(a::Array) = pointerinfo(pointer(a))
 
 ## generic interface (for documentation purposes)
 
@@ -303,6 +304,15 @@ function download(::Type{T}, src::Buffer, count::Integer=1) where {T}
     dst = Vector{T}(undef, count)
     download!(dst, src)
     return dst
+end
+
+# Pretty-printing
+function Base.show(io::IO, ptrinfo::HSA.PointerInfo)
+    println(io, "Pointer type: $(ptrinfo.type)")
+    println(io, "Owner: $(ptrinfo.agentOwner)")
+    println(io, "Agent base address: $(ptrinfo.agentBaseAddress)")
+    println(io, "Host base address: $(ptrinfo.hostBaseAddress)")
+    print(io, "Size (bytes): $(ptrinfo.sizeInBytes)")
 end
 
 end
