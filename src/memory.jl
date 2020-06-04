@@ -11,7 +11,7 @@ module Mem
 
 using ..HSARuntime
 using ..HSARuntime.HSA
-import HSARuntime: check, get_region
+import HSARuntime: check, get_region, AGENTS
 
 ## buffer type
 
@@ -101,6 +101,7 @@ used() = total()-free()
 """
     pointerinfo(ptr::Ptr)
     pointerinfo(buf::Buffer)
+    pointerinfo(a::Array)
 
 Retrieve information about the allocation referenced by the given pointer.
 """
@@ -309,10 +310,10 @@ end
 # Pretty-printing
 function Base.show(io::IO, ptrinfo::HSA.PointerInfo)
     println(io, "Pointer type: $(ptrinfo.type)")
-    println(io, "Owner: $(ptrinfo.agentOwner)")
+    println(io, "Owner: $(AGENTS[ptrinfo.agentOwner.handle])")
     println(io, "Agent base address: $(ptrinfo.agentBaseAddress)")
     println(io, "Host base address: $(ptrinfo.hostBaseAddress)")
     print(io, "Size (bytes): $(ptrinfo.sizeInBytes)")
 end
 
-end
+end # module Mem

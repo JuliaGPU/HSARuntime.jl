@@ -2,9 +2,24 @@
 
 mutable struct HSAAgent
     agent::HSA.Agent
+
+    # Cached information
+    type::Symbol
+    name::String
+    productname::String
+
+    function HSAAgent(handle::HSA.Agent)
+        agent = new(handle)
+        agent.type = device_type(agent)
+        agent.name = get_name(agent)
+        agent.productname = get_product_name(agent)
+
+        agent
+    end
 end
 
 const DEFAULT_AGENT = Ref{HSAAgent}()
+const AGENTS = IdDict{UInt64, HSAAgent}() # Map from agent handles to HSAAgent structs
 
 ### @cfunction callbacks ###
 
@@ -72,10 +87,6 @@ function get_coarse_grained_memory_region_cb(region::HSA.Region, data::Ptr{HSA.R
     return HSA.STATUS_SUCCESS
 end
 
-function Base.show(io::IO, agent::HSAAgent)
-    print(io, "HSAAgent($(agent.agent)): Name=$(get_name(agent)), Type=$(device_type(agent))")
-end
-
 function get_agents()
     agents = Ref(Vector{HSAAgent}())
     GC.@preserve agents begin
@@ -84,6 +95,12 @@ function get_agents()
         HSA.iterate_agents(func, agents) |> check
         _agents = agents[]
     end
+
+    # Update the entries in the agent handle dictionary
+    for agent in _agents
+        AGENTS[agent.agent.handle] = agent
+    end
+
     return _agents
 end
 get_agents(kind::Symbol) =
@@ -103,6 +120,13 @@ function get_name(agent::HSAAgent)
     getinfo(agent.agent, HSA.AGENT_INFO_NAME, name) |> check
     return rstrip(String(name), '\0')
 end
+
+function get_product_name(agent::HSAAgent)
+    name = Vector{UInt8}(undef, 64)
+    getinfo(agent.agent, HSA.AMD_AGENT_INFO_PRODUCT_NAME, name) |> check
+    rstrip(String(name), '\0')
+end
+
 function profile(agent::HSAAgent)
     profile = Ref{HSA.Profile}()
     getinfo(agent.agent, HSA.AGENT_INFO_PROFILE, profile) |> check
@@ -156,5 +180,31 @@ function get_region(agent::HSAAgent, kind::Symbol)
     HSA.agent_iterate_regions(agent.agent, func, region)
     check((region[].handle == typemax(UInt64)) ? HSA.STATUS_ERROR : HSA.STATUS_SUCCESS)
     return region
+end
+
+"""
+Return all agents available to the runtime.
+"""
+agents() = collect(values(AGENTS))
+
+# Pretty-printing
+function Base.show(io::IO, agent::HSAAgent)
+    name = if agent.name == agent.productname
+        "$(agent.name)"
+    else
+        "$(agent.productname) ($(agent.name))"
+    end
+
+    typename = if agent.type == :cpu
+        "CPU"
+    elseif agent.type == :gpu
+        "GPU"
+    elseif agent.type == :dsp
+        "DSP"
+    else
+        "(Unknown device type)"
+    end
+
+    print(io, "$typename: $name")
 end
 
