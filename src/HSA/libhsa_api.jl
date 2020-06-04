@@ -872,8 +872,8 @@ function amd_image_create(agent::Agent, image_descriptor::Ref{ExtImageDescriptor
     ccall((:hsa_amd_image_create, "libhsa-runtime64"), Status, (Agent, Ref{ExtImageDescriptor}, Ref{AMDImageDescriptor}, Ref{Cvoid}, AccessPermission, Ref{Image}), agent, image_descriptor, image_layout, image_data, access_permission, image)
 end
 
-function amd_pointer_info(ptr::Ref{Cvoid}, info::Ref{PointerInfo}, alloc::Ref{Cvoid}, num_agents_accessible::Ref{UInt32}, accessible::Ref{Ref{Agent}})
-    ccall((:hsa_amd_pointer_info, "libhsa-runtime64"), Status, (Ref{Cvoid}, Ref{PointerInfo}, Ref{Cvoid}, Ref{UInt32}, Ref{Ref{Agent}}), ptr, info, alloc, num_agents_accessible, accessible)
+function amd_pointer_info(ptr::Ptr{Cvoid}, info::Ref{PointerInfo}, alloc::Ptr{Cvoid}, num_agents_accessible::Ptr{UInt32}, accessible)
+    ccall((:hsa_amd_pointer_info, "libhsa-runtime64"), Status, (Ptr{Cvoid}, Ref{PointerInfo}, Ptr{Cvoid}, Ptr{UInt32}, Ptr{Cvoid}), ptr, info, alloc, num_agents_accessible, accessible)
 end
 
 function amd_pointer_info_set_userdata(ptr::Ref{Cvoid}, userdata::Ref{Cvoid})

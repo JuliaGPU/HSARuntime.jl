@@ -98,6 +98,20 @@ Returns the used amount of memory (in bytes), allocated on the agent.
 """
 used() = total()-free()
 
+"""
+    pointerinfo(ptr::Ptr)
+    pointerinfo(buf::Buffer)
+
+Retrieve information about the allocation referenced by the given pointer.
+"""
+function pointerinfo(ptr::Ptr)
+    ptrinfo = Ref{HSA.PointerInfo}()
+
+    HSA.amd_pointer_info(Ptr{Cvoid}(ptr), ptrinfo, C_NULL, Ptr{UInt32}(C_NULL), C_NULL) |> check
+
+    return ptrinfo[]
+end
+pointerinfo(buf::Buffer) = pointerinfo(buf.ptr)
 
 ## generic interface (for documentation purposes)
 
@@ -152,7 +166,7 @@ only accessible from the given agent (the default agent if not specified).
 
 If `coherent` is set to `true`, the allocated buffer will be accessible from
 all HSA agents, including the host CPU.
-This, even though convenient, can sometimes be slower than explicit memory transfer.
+This, even though convenient, can sometimes be slower than explicit memory transfers.
 """
 function alloc(agent::HSAAgent, bytesize::Integer; coherent=false)
     bytesize == 0 && return Buffer(C_NULL, 0, agent)
@@ -215,7 +229,6 @@ Transfer `nbytes` of device memory from `src` to `dst`.
 function transfer!(dst::Buffer, src::Buffer, nbytes::Integer)
     HSA.memory_copy(dst.ptr, src.ptr, nbytes) |> check
 end
-
 
 ## array based
 
