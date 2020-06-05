@@ -16,7 +16,9 @@ let
 
     buf1 = Mem.alloc(sizeof(src); coherent=true)
 
-    Mem.set!(buf1, UInt32(0), sizeof(Int)÷sizeof(UInt32))
+    Mem.set!(buf1, UInt32(57), 1)
+    x = Mem.download(UInt32, buf1)
+    @test x[1] == UInt32(57)
 
     Mem.upload!(buf1, pointer_from_objref(Ref(src)), sizeof(src))
 

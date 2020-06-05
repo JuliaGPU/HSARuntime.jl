@@ -856,8 +856,8 @@ function amd_memory_unlock(host_ptr::Ptr{Cvoid})
     ccall((:hsa_amd_memory_unlock, "libhsa-runtime64"), Status, (Ptr{Cvoid},), host_ptr)
 end
 
-function amd_memory_fill(ptr::Ref{Cvoid}, value::Integer, count::Integer)
-    ccall((:hsa_amd_memory_fill, "libhsa-runtime64"), Status, (Ref{Cvoid}, UInt32, Csize_t), ptr, value, count)
+function amd_memory_fill(ptr::Ptr{Cvoid}, value::UInt32, count::Integer)
+    ccall((:hsa_amd_memory_fill, "libhsa-runtime64"), Status, (Ptr{Cvoid}, UInt32, Csize_t), ptr, value, count)
 end
 
 function amd_interop_map_buffer(num_agents::Integer, agents::Ref{Agent}, interop_handle::Cint, flags::Integer, size::Ref{Csize_t}, ptr::Ref{Ref{Cvoid}}, metadata_size::Ref{Csize_t}, metadata::Ref{Ref{Cvoid}})

@@ -230,14 +230,12 @@ function free(buf::Buffer)
 end
 
 """
-    set!(buf::Buffer, value::T, len::Integer)
+    set!(buf::Buffer, value::UInt32, len::Integer)
 
-Initialize device memory by copying the value `val` for `len` times.
+Write `len` copies of the 32-bit `value` at the start of `buf`.
 """
-function set!(buf::Buffer, value::T, len::Integer) where T<:Unsigned
-    ccall(:memset, Cvoid,
-          (Ptr{Cvoid}, T, Csize_t),
-          buf.ptr, value, len*sizeof(T))
+function set!(buf::Buffer, value::UInt32, len::Integer)
+    HSA.amd_memory_fill(buf.ptr, value, len) |> check
 end
 
 """
