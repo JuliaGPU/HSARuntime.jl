@@ -10,58 +10,79 @@ let
 end
 =#
 
-# pointer-based
-src = 42
+let
+    # pointer-based
+    src = 42
 
-buf1 = Mem.alloc(sizeof(src); coherent=true)
+    buf1 = Mem.alloc(sizeof(src); coherent=true)
 
-Mem.set!(buf1, UInt32(0), sizeof(Int)÷sizeof(UInt32))
+    Mem.set!(buf1, UInt32(0), sizeof(Int)÷sizeof(UInt32))
 
-Mem.upload!(buf1, pointer_from_objref(Ref(src)), sizeof(src))
+    Mem.upload!(buf1, pointer_from_objref(Ref(src)), sizeof(src))
 
-dst1 = Ref(0)
-Mem.download!(pointer_from_objref(dst1), buf1, sizeof(src))
-@test src == dst1[]
+    dst1 = Ref(0)
+    Mem.download!(pointer_from_objref(dst1), buf1, sizeof(src))
+    @test src == dst1[]
 
-buf2 = Mem.alloc(sizeof(src))
+    buf2 = Mem.alloc(sizeof(src))
 
-Mem.transfer!(buf2, buf1, sizeof(src))
+    Mem.transfer!(buf2, buf1, sizeof(src))
 
-dst2 = Ref(0)
-Mem.download!(pointer_from_objref(dst2), buf2, sizeof(src))
-@test src == dst2[]
+    dst2 = Ref(0)
+    Mem.download!(pointer_from_objref(dst2), buf2, sizeof(src))
+    @test src == dst2[]
 
-Mem.free(buf2)
-Mem.free(buf1)
+    Mem.free(buf2)
+    Mem.free(buf1)
+end
 
-# array-based
-src = [42]
+let
+    # array-based
+    src = [42]
 
-buf1 = Mem.alloc(src)
+    buf1 = Mem.alloc(src)
 
-Mem.upload!(buf1, src)
+    Mem.upload!(buf1, src)
 
-dst1 = similar(src)
-Mem.download!(dst1, buf1)
-@test src == dst1
+    dst1 = similar(src)
+    Mem.download!(dst1, buf1)
+    @test src == dst1
 
-buf2 = Mem.upload(src)
+    buf2 = Mem.upload(src)
 
-dst2 = similar(src)
-Mem.download!(dst2, buf2)
-@test src == dst2
+    dst2 = similar(src)
+    Mem.download!(dst2, buf2)
+    @test src == dst2
 
-Mem.free(buf1)
+    Mem.free(buf1)
+end
 
-# type-based
-buf = Mem.alloc(Int)
+let
+    # type-based
+    buf = Mem.alloc(Int)
 
-# there's no type-based upload, duh
-src = [42]
-Mem.upload!(buf, src)
+    # there's no type-based upload, duh
+    src = [42]
+    Mem.upload!(buf, src)
 
-dst = Mem.download(eltype(src), buf)
-@test src == dst
+    dst = Mem.download(eltype(src), buf)
+    @test src == dst
+end
+
+let
+    # Page-locked memory
+    a = rand(1024)
+    plocked = Mem.lock(a)
+
+    # NOTE - For a single agent, it seems that plocked == pointer(a)
+    @test Mem.pointerinfo(pointer(a)).type == HSA.POINTER_TYPE_LOCKED
+    @test Mem.pointerinfo(plocked).type == HSA.POINTER_TYPE_LOCKED
+    @test Mem.pointerinfo(plocked).sizeInBytes == sizeof(a)
+
+    Mem.unlock(a)
+    @test Mem.pointerinfo(pointer(a)).type == HSA.POINTER_TYPE_UNKNOWN
+    @test Mem.pointerinfo(plocked).type == HSA.POINTER_TYPE_UNKNOWN
+end
 
 let
     @test_throws ArgumentError Mem.alloc(Function, 1)   # abstract

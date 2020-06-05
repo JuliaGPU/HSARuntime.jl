@@ -844,16 +844,16 @@ function amd_memory_migrate(ptr::Ref{Cvoid}, memory_pool::MemoryPool, flags::Int
     ccall((:hsa_amd_memory_migrate, "libhsa-runtime64"), Status, (Ref{Cvoid}, MemoryPool, UInt32), ptr, memory_pool, flags)
 end
 
-function amd_memory_lock(host_ptr::Ref{Cvoid}, size::Integer, agents::Ref{Agent}, num_agent::Cint, agent_ptr::Ref{Ref{Cvoid}})
-    ccall((:hsa_amd_memory_lock, "libhsa-runtime64"), Status, (Ref{Cvoid}, Csize_t, Ref{Agent}, Cint, Ref{Ref{Cvoid}}), host_ptr, size, agents, num_agent, agent_ptr)
+function amd_memory_lock(host_ptr::Ptr{Cvoid}, size::Integer, agents::Ref{Agent}, num_agent::Integer, agent_ptr::Ref{Ptr{Cvoid}})
+    ccall((:hsa_amd_memory_lock, "libhsa-runtime64"), Status, (Ptr{Cvoid}, Csize_t, Ref{Agent}, Cint, Ref{Ptr{Cvoid}}), host_ptr, size, agents, num_agent, agent_ptr)
 end
 
 function amd_memory_lock_to_pool(host_ptr::Ref{Cvoid}, size::Integer, agents::Ref{Agent}, num_agent::Cint, pool::MemoryPool, flags::Integer, agent_ptr::Ref{Ref{Cvoid}})
     ccall((:hsa_amd_memory_lock_to_pool, "libhsa-runtime64"), Status, (Ref{Cvoid}, Csize_t, Ref{Agent}, Cint, MemoryPool, UInt32, Ref{Ref{Cvoid}}), host_ptr, size, agents, num_agent, pool, flags, agent_ptr)
 end
 
-function amd_memory_unlock(host_ptr::Ref{Cvoid})
-    ccall((:hsa_amd_memory_unlock, "libhsa-runtime64"), Status, (Ref{Cvoid},), host_ptr)
+function amd_memory_unlock(host_ptr::Ptr{Cvoid})
+    ccall((:hsa_amd_memory_unlock, "libhsa-runtime64"), Status, (Ptr{Cvoid},), host_ptr)
 end
 
 function amd_memory_fill(ptr::Ref{Cvoid}, value::Integer, count::Integer)

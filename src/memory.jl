@@ -115,6 +115,40 @@ end
 pointerinfo(buf::Buffer) = pointerinfo(buf.ptr)
 pointerinfo(a::Array) = pointerinfo(pointer(a))
 
+## Page-locking
+
+"""
+    lock(ptr::Ptr, bytesize::Integer, agent::HSAAgent)
+    lock(ptr, bytesize)
+    lock(a::Array, agent)
+    lock(a)
+
+Page-lock a host pointer allocated by the OS allocator and return a new pointer from
+the given `agent`. For more information, see `hsa_amd_memory_lock()`.
+
+See also: [`unlock`](@ref)
+"""
+function lock(ptr::Ptr, bytesize::Integer, agent::HSAAgent)
+    plocked = Ref{Ptr{Cvoid}}()
+    HSA.amd_memory_lock(Ptr{Cvoid}(ptr), bytesize, Ref(agent.agent), 1, plocked) |> check
+    return plocked[]
+end
+lock(ptr, bytesize) = lock(ptr, bytesize, get_default_agent())
+lock(a::Array, agent::HSAAgent) = lock(pointer(a), sizeof(a), agent)
+lock(a::Array) = lock(pointer(a), sizeof(a), get_default_agent())
+
+"""
+    unlock(ptr::Ptr)
+    unlock(a::Array)
+
+Unlock the host pointer previously page-locked with [`lock`](@ref).
+NB: `ptr` should be the original locked host pointer and not the pointer returned by `lock`!
+"""
+function unlock(ptr::Ptr)
+    HSA.amd_memory_unlock(Ptr{Cvoid}(ptr)) |> check
+end
+unlock(a::Array) = unlock(pointer(a))
+
 ## generic interface (for documentation purposes)
 
 """
