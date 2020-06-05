@@ -19,6 +19,7 @@ struct Buffer
     ptr::Ptr{Cvoid}
     bytesize::Int
     agent::HSAAgent
+    coherent::Bool
 end
 
 Base.unsafe_convert(::Type{Ptr{T}}, buf::Buffer) where {T} = convert(Ptr{T}, buf.ptr)
@@ -205,7 +206,7 @@ all HSA agents, including the host CPU.
 This, even though convenient, can sometimes be slower than explicit memory transfers.
 """
 function alloc(agent::HSAAgent, bytesize::Integer; coherent=false)
-    bytesize == 0 && return Buffer(C_NULL, 0, agent)
+    bytesize == 0 && return Buffer(C_NULL, 0, agent, coherent)
 
     ptr_ref = Ref{Ptr{Cvoid}}()
 
@@ -217,7 +218,7 @@ function alloc(agent::HSAAgent, bytesize::Integer; coherent=false)
 
     region = get_region(agent, region_kind)
     check(HSA.memory_allocate(region[], bytesize, ptr_ref))
-    return Buffer(ptr_ref[], bytesize, agent)
+    return Buffer(ptr_ref[], bytesize, agent, coherent)
 end
 alloc(bytesize; kwargs...) = alloc(get_default_agent(), bytesize; kwargs...)
 
@@ -245,7 +246,18 @@ end
 Upload `nbytes` memory from `src` at the host to `dst` on the device.
 """
 function upload!(dst::Buffer, src::Ptr{T}, nbytes::Integer) where T
-    HSA.memory_copy(Ptr{T}(dst.ptr), src, nbytes) |> check
+    # Page-locking coherent memory results in a ReadOnlyMemoryError.
+    plocked = if dst.coherent
+        src
+    else
+        lock(src, nbytes, dst.agent)
+    end
+
+    HSA.memory_copy(Ptr{T}(dst.ptr), Ptr{T}(plocked), nbytes) |> check
+
+    if !dst.coherent
+        unlock(src)
+    end
 end
 
 """
@@ -254,7 +266,17 @@ end
 Download `nbytes` memory from `src` on the device to `dst` on the host.
 """
 function download!(dst::Ptr{T}, src::Buffer, nbytes::Integer) where T
-    HSA.memory_copy(dst, Ptr{T}(src.ptr), nbytes) |> check
+    plocked = if src.coherent
+        dst
+    else
+        Mem.lock(dst, nbytes, src.agent)
+    end
+
+    HSA.memory_copy(Ptr{T}(plocked), Ptr{T}(src.ptr), nbytes) |> check
+
+    if !src.coherent
+        Mem.unlock(dst)
+    end
 end
 
 """
@@ -283,7 +305,7 @@ end
 Upload the contents of an array `src` to `dst`.
 """
 function upload!(dst::Buffer, src::AbstractArray)
-    GC.@preserve src upload!(dst, pointer(src, 1), sizeof(src))
+    GC.@preserve src upload!(dst, pointer(src), sizeof(src))
 end
 
 """
@@ -305,7 +327,7 @@ Downloads memory from `src` to the array at `dst`. The amount of memory download
 determined by calling `sizeof` on the array, so it needs to be properly preallocated.
 """
 function download!(dst::AbstractArray, src::Buffer)
-    GC.@preserve dst download!(pointer(dst, 1), src, sizeof(dst))
+    GC.@preserve dst download!(pointer(dst), src, sizeof(dst))
     return
 end
 
