@@ -41,7 +41,9 @@ function HSAArray(agent::HSAAgent, arr::Array{T,N}) where {T,N}
 end
 
 function Array(harr::HSAArray{T,N}) where {T,N}
-    Mem.download(T, harr.buffer, prod(size(harr)))
+    array = Array{T}(undef, size(harr))
+    Mem.download!(array, harr.buffer)
+    array
 end
 
 Base.pointer(arr::HSAArray{T,N}) where {T, N} = Ptr{T}(arr.buffer.ptr)
