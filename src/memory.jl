@@ -26,7 +26,7 @@ Base.unsafe_convert(::Type{Ptr{T}}, buf::Buffer) where {T} = convert(Ptr{T}, buf
 
 function view(buf::Buffer, bytes::Int)
     bytes > buf.bytesize && throw(BoundsError(buf, bytes))
-    return Mem.Buffer(buf.ptr+bytes, buf.bytesize-bytes, buf.agent)
+    return Buffer(buf.ptr+bytes, buf.bytesize-bytes, buf.agent)
 end
 
 ## refcounting
@@ -267,13 +267,13 @@ function download!(dst::Ptr{T}, src::Buffer, nbytes::Integer) where T
     plocked = if src.coherent
         dst
     else
-        Mem.lock(dst, nbytes, src.agent)
+        lock(dst, nbytes, src.agent)
     end
 
     HSA.memory_copy(Ptr{T}(plocked), Ptr{T}(src.ptr), nbytes) |> check
 
     if !src.coherent
-        Mem.unlock(dst)
+        unlock(dst)
     end
 end
 
