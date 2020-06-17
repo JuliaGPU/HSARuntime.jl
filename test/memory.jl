@@ -1,17 +1,6 @@
 @testset "Memory" begin
 
-#= FIXME
-let
-    a,b = Mem.info()
-    # NOTE: actually testing this is pretty fragile on CI
-    #=@test a == =# Mem.free()
-    #=@test b == =# Mem.total()
-    #=@test b-a == =# Mem.used()
-end
-=#
-
-let
-    # pointer-based
+@testset "Pointer-based" begin
     src = 42
 
     buf1 = Mem.alloc(sizeof(src); coherent=true)
@@ -20,10 +9,10 @@ let
     x = Mem.download(UInt32, buf1)
     @test x[1] == UInt32(57)
 
-    Mem.upload!(buf1, pointer_from_objref(Ref(src)), sizeof(src))
+    GC.@preserve Mem.upload!(buf1, pointer_from_objref(Ref(src)), sizeof(src))
 
     dst1 = Ref(0)
-    Mem.download!(pointer_from_objref(dst1), buf1, sizeof(src))
+    GC.@preserve Mem.download!(pointer_from_objref(dst1), buf1, sizeof(src))
     @test src == dst1[]
 
     buf2 = Mem.alloc(sizeof(src))
@@ -31,15 +20,14 @@ let
     Mem.transfer!(buf2, buf1, sizeof(src))
 
     dst2 = Ref(0)
-    Mem.download!(pointer_from_objref(dst2), buf2, sizeof(src))
+    GC.@preserve Mem.download!(pointer_from_objref(dst2), buf2, sizeof(src))
     @test src == dst2[]
 
     Mem.free(buf2)
     Mem.free(buf1)
 end
 
-let
-    # array-based
+@testset "Array-based" begin
     src = [42]
 
     buf1 = Mem.alloc(src)
@@ -59,8 +47,7 @@ let
     Mem.free(buf1)
 end
 
-let
-    # type-based
+@testset "Type-based" begin
     buf = Mem.alloc(Int)
 
     # there's no type-based upload, duh
@@ -71,8 +58,7 @@ let
     @test src == dst
 end
 
-let
-    # Page-locked memory
+@testset "Page-locked memory" begin
     a = rand(1024)
     plocked = Mem.lock(a)
 
@@ -86,7 +72,7 @@ let
     @test Mem.pointerinfo(plocked).type == HSA.POINTER_TYPE_UNKNOWN
 end
 
-let
+@testset "Exceptions" begin
     @test_throws ArgumentError Mem.alloc(Function, 1)   # abstract
     @test_throws ArgumentError Mem.alloc(Array{Int}, 1) # UnionAll
     @test_throws ArgumentError Mem.alloc(Integer, 1)    # abstract
@@ -103,7 +89,7 @@ let
     # FIXME: Segfaults... @test_throws HSAError Mem.free(x)
 end
 
-let
+@testset "Mutable structs" begin
     @eval mutable struct MutablePtrFree
         foo::Int
         bar::Int
@@ -111,9 +97,7 @@ let
     buf = Mem.alloc(MutablePtrFree)
     Mem.upload!(buf, [MutablePtrFree(0,0)])
     Mem.free(buf)
-end
 
-let
     @eval mutable struct MutableNonPtrFree
         foo::Int
         bar::String
