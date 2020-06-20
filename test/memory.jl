@@ -58,7 +58,24 @@ end
     @test src == dst
 end
 
-@testset "Page-locked memory" begin
+@testset "Pointer information" begin
+    default_agent = get_default_agent()
+
+    N = 1024
+    a = rand(N)
+    b = Mem.alloc(default_agent, N)
+    
+    ptrinfo_host = Mem.pointerinfo(a)
+    ptrinfo_hsa = Mem.pointerinfo(b)
+
+    @test ptrinfo_host.type == HSA.POINTER_TYPE_UNKNOWN
+    @test ptrinfo_hsa.type == HSA.POINTER_TYPE_HSA
+    @test ptrinfo_hsa.agentOwner.handle == default_agent.agent.handle
+
+    Mem.free(b)
+end
+
+@testset "Page-locked memory (OS allocations)" begin
     a = rand(1024)
     plocked = Mem.lock(a)
 
