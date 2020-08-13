@@ -1,5 +1,7 @@
 # HSARuntime.jl - Julia interface to the HSA runtime
 
+## Deprecated, please use [AMDGPU.jl](https://github.com/JuliaGPU/AMDGPU.jl)
+
 ## Requirements
 
 ### Installed
